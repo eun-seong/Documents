@@ -5,7 +5,7 @@ class CMyString{
         CMyString();
         ~CMyString();
         int SetString(const char* pszParam);
-        const char* GetString();
+        const char* GetString() const;
         void Release();
 
     private:
