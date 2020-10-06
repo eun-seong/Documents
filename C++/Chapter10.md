@@ -1,114 +1,80 @@
 # [Chapter 10] 예외 처리
 ## 용어
-상속 : 객체 단위 코드를 재사용하는 방법    
-재정의 : 기존의 선언 및 정의된 코드를 유지하면서 새롭게 바꾸는 방법   
-메소드 재정의 : 클래스에 있는 메소드를 자유롭게 재정의    
+`try` : 예외가 발생할 수 있는 곳    
+`throw` : 예외 발생   
+`catch` : 예외 처리    
+스택 풀기 : 스택 메모리에 불필요한 데이터가 쌓이지 않게 예외 발생하기 전으로 돌아감   
 * * *
-## 상속
-객체 단위 코드를 재사용하는 방법   
-상속 받는 클래스와 상속하는 클래스 사이의 **관계**를 고려해 프로그램 작성
-### 기본 형식   
+## `try`, `catch`, `throw`
+예외를 `if-else`문으로 처리하는 것보다 **구조적으로** 간결
 ```c++
-class 파생클래스이름 : 접근제어지시자 부모클래스이름
+try{
+    // 에러가 발생할 수 있는 코드
+    // 흐름이 한 눈에 보임
+    if(error 발생)
+        throw errorcode;
+    ...
+} catch(int e){
+    예외 처리
+}
 ```
-### `public` 접근 제어 지시자를 통한 상속
-* 파생 클래스 인스턴스가 생성되면 [기본 클래스의 생성자 호출]()   
-* 파생 클래스는 `private` 접근 제어 지시자로 선언된 멤버를 제외한 기본 클래스의 멤버에 접근 가능    
-    [식별자 검새 순서에 근거](./Chapter2.md/#식별자-검색-순서)
-* 사용자 코드에서 파생 클래스의 인스턴스를 통해 기본 클래스 메소드 호출 가능   
-* * *
-## 메소드 재정의(Override)
-기존 클래스의 메소드와 새로 정의된 메소드가 공존하며 새 메소드가 기존 메소드를 대체   
-(X) 기존 코드 제거   
-(O) 기존 메소드와 새 메소드 한데 묶어 작동   
-### 기본 문법
+### `catch` 다중화
+예외 상황을 상황에 따라 구별하여 사용할수 있음
 ```c++
-class CMyData{
-    public:
-    void SetData(int nParam){ mData = nParam; }
+try{
+    ...
+} catch(int eNum){
+
+} catch(char eCh){
+    ...
+    // 이중 가능
+    try {
+        ...
+    } catch(...) {
+        ...
+    }
+}
+```
+### 예외 클래스
+사용자화 예외 클래스 만들 수 있음   
+```c++
+class CMyException {
+public:
+    CMyException(int errorCode, const char* pszMsg){
+        m_nErrorCode = errorCode;
+        strcpy_s(m_szMsg, sizeof(pszMsg), pszMsg);
+    }
     ...
 };
 
-class CMyDataEx : public CMyData{
-    public:
-    // 함수 재정의
-    void SetData(int nParam){
-        if(nParam < 0) CMyData::SetData(0);
-        if(nParam > 10) CMyData::SetData(10);
-        // **주의** 재귀호출 당연하쥬?
-        // SetData(0);
-    }
-};
-```
-#### 부모 클래스 멤버 메소드 명시적 호출
-```c++
-CMyDataEx b;
-b.SetData(15);              // CMyDataEx::SetData() 함수 호출
-b.CMyData::SetData(15);    // CMyData::SetData() 함수 호출
-```
-### 참조 형식과 실형식
-포인터도 가능
-```c++
 int main(){
-    CMyDataEx a;
-    CMyData& rData = a;
-    rData.SetDat(15);   // CMyData::SetData() 함수 호출
-    cout<< rData.GetData() << '\n';
+    ...
+    try{
+        if(input < 0) {
+            CMyException exp(10, "에러 발생 메세지");
+            throw exp;
+        }
+    } catch(CMyException& e) {
+        // 예외 처리
+        ...
+    }
 }
 ```
-* * *
-## 생성자와 소멸자
-### 실행 순서
+## Stack unwinding
+함수 호출로 인해 쌓아 올려진 스택에서 예외가 발생하면 `catch`를 만날 때까지 함수와 그 함수의 지역변수를 정리하며 스택에서 `pop`한다.   
+이렇게 되면 스택이 자동으로 풀리며 `catch`를 만나기 전 까지 스택에 있던 함수들이 호출되기 전 상태로 **정상적으로** 되돌아온다. 
+## 메모리 예외 처리
+`bad_alloc` 를 사용하여 메모리 예외 처리가 가능
 ```c++
-Class A { };
-Class B : public A { };
-Class C : public B { };
-```
-```c++
-C c;
-```
-#### 생성자
-호출 순서 : C -> B -> A   
-실행 순서 : A -> B -> C   
-호출과 실행 순서가 **역순**   
-자식 클래스에서 생성자를 실행하기 전 부모 클래스의 생성자 호출    
-#### 소멸자
-호출 순서 : C -> B -> A   
-실행 순서 : C -> B -> A   
-호출과 실행 순서가 **동일**   
-자식 클래스의 소멸자에서 리턴하기 전 부모 클래스의 소멸자 호출    
-#### 생성자와 소멸자는 객체 자신의 초기화 및 해제
-* 파생 클래스는 부모 클래스의 멤버 변수에 직접 쓰기 연산하지 않아야 함
-* 파생 클래스 생성자에서 부모 클래스 멤버 변수를 초기화하지 않아야 함
-### 생성자 선택
-이니셜라이저를 통해 상위 클래스 생성자를 호출하듯이 기술하는 것   
-부모 클래스와 자식 클래스에서 생성자가 다중 정의되어 있을 경우 생성자 선택 가능   
-```c++
-class CMyData{
-    public:
-    CMyData() { ... }
-    CMyData(int nParam) { ... }
-    CMyData(double dParam) { ... }
-}
-
-class CMyDataEx: public CMyData{
-    public:
-    CMyDataEx() { }
-    CMyDataEx(int nParam) : CMyData(nParam) { ... }
-    DMyDataEx(int dParam) : DMyData(dParam) { ... }
-}
-```
-#### 생성자 상속
-부모 클래스의 생성자를 그대로 자식 클래스로 가져올 때 사용   
-```c++
-class CMyDataEx : public CMyData{
-    public:
-    using CMyData::CMyData;
+try{
+    ...
+} catch(bad_alloc& exp) {
+    cout << exp.what() << '\n';
 }
 ```
 * * *
 ## 연습 문제
 **Q1**   
-기본 형식      
+호출 스택에서 예외가 발생할 경우 `catch`를 만날 때까지 거슬로 올라가 함수가 호출되기 전 상태로 되돌아간다.         
 **Q2**   
-A   
+메모리 예외 처리를 할 수 있다. `what()` 함수를 사용하면 원인을 알 수 있다.   
