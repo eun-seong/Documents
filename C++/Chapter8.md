@@ -62,7 +62,7 @@ class CMyUI {
 }
 
 int main() {
-    CMyUI ui;   // CMyUI만 생셔ㅓㅇ
+    CMyUI ui;   // CMyUI만 생성
     ui.Run();
 }
 ```
