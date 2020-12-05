@@ -120,7 +120,7 @@ mask : `000010010`
     - mount table & vfs list : 다른 OS 체계여도 unix file system 처럼 통함해줌
 
 ### UNIX File system
-<img src ='2020-12-05-15-29-43.png' width=600/>
+<img src='./CH3_FILE2/2020-12-05-15-29-43.png' width=600/>
 
 * Boot block
     - UNIX가 처음 활성화될 때 사용되는 boot code
@@ -138,7 +138,7 @@ mask : `000010010`
     - file block를 저장
 
 ### i-nodes 와 data block
-<img src='2020-12-05-15-35-42.png' width=600/>
+<img src='./CH3_FILE2/2020-12-05-15-35-42.png' width=600/>
 
 * 각 파일은 하나의 i-node를 갖는다.
 * 각 파일은 적어도 하나의 디렉토리로 링크되어 있어야 한다.
@@ -150,7 +150,7 @@ mask : `000010010`
 
 ### Hard link & Symbolic link
 * **Hard link**   
-    <img src='2020-12-05-16-09-21.png' width=500/>
+    <img src='./CH3_FILE2/2020-12-05-16-09-21.png' width=500/>
 
     - 파일에 직접적으로 연결된 포인터
     - link count : i-node를 가리키고 있는 디렉토리 엔트리의 개수
@@ -158,7 +158,7 @@ mask : `000010010`
     - 같은 파일 시스템 내에 있어야만 가능
     - superuser만 디렉토리에 hard link를 생성할 수 있음
 * **Symbol link**   
-    <img src='2020-12-05-16-07-27.png' width=500/>
+    <img src='./CH3_FILE2/2020-12-05-16-07-27.png' width=500/>
 
     - 파일에 간접적으로 연결된 포인터
     - 파일 시스템에 제한이 없음
@@ -166,7 +166,7 @@ mask : `000010010`
     - 파일의 i-node를 저장하는 것이 아니라 **pathname**을 저장   
         -> 각 파일의 i-node는 다름
 
-<img src='2020-12-05-16-10-29.png' width=500/>
+<img src='./CH3_FILE2/2020-12-05-16-10-29.png' width=500/>
 
 * doesn't follow : 심볼릭 링크를 따라가지 않고 그 파일 자체에 접근
 * follow : 심볼릭 링크까지 따라가서 파일에 접근
@@ -174,8 +174,8 @@ mask : `000010010`
 * * *
 
 ## 3. 파일 정보 : `stat`과 `fstat`
-[`stat()`](#`stat()`)
-
+[`stat()` system call](#`stat()`)   
+[CH4_stat]()
 
 * * *
 
@@ -325,4 +325,4 @@ int lstat(const char* pathname, struct stat* buf);  // symbolic link 정보
 |error|-1|
 
 * arguments   
-    <img src='2020-12-05-16-48-48.png' width=600/>
+    <img src='./CH3_FILE2/2020-12-05-16-48-48.png' width=600/>

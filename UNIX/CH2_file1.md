@@ -27,7 +27,7 @@
 * 데이터 저장 장치에 사용된다(하드 디스크, CD-ROM).   
 
 **파일 시스템에 접근하는 구조**   
-<img src='2020-10-18-14-44-07.png' width=600/>
+<img src='./CH2_FILE1/2020-10-18-14-44-07.png' width=600/>
 * * *
 
 ## 2. UNIX file access primitevs
@@ -60,7 +60,7 @@
 * 0부터 2까지는 예약되어 있기 때문에 파일의 **descriptor는 3부터 시작한다.**
 ### File permissions
 9개의 bits로 표현   
-<img src='2020-10-18-15-39-57.png' width=400/>
+<img src='./CH2_FILE1/2020-10-18-15-39-57.png' width=400/>
 
 |alphabet|binary bit|desc|
 |---|---|---|
@@ -86,7 +86,7 @@ fd = open("/tmp/newfile", O_WRONLY|O_CREAT|O_TRUNC, 0644);
 * 모든 프로세스는 **process table** 안에 엔트리를 가지고 있다.
 * 프로세스 테이블 엔트리는 open한 파일 descriptor의 테이블을 가지고 있다.
 
-<img src='2020-12-05-11-24-04.png' width=600/>
+<img src='./CH2_FILE1/2020-12-05-11-24-04.png' width=600/>
 
 * process table entry   
     * index 0~2까지는 예약
@@ -157,7 +157,7 @@ fd = open("/tmp/newfile", O_WRONLY|O_CREAT|O_TRUNC, 0644);
     `fopen`, `fclose`, `fread`, `fwrite` 등...
 
 ### Buffering
-<img src='2020-12-05-12-23-40.png' width=600/>
+<img src='./CH2_FILE1/2020-12-05-12-23-40.png' width=600/>
 
 * system call의 비효율성을 지양
 * block 단위로 읽어와 버퍼에 저장한 후 다시 block을 읽고 버퍼에 저장하는 것(system call 방식)이 아닌, 버퍼에 저장 된 그 다음 바이트를 읽음
@@ -256,7 +256,7 @@ ssize_t read(int filedes, void *buffer, size_t n);
     |buffer|데이터가 복사될 구조체 혹은 포인터|
     |n|파일로부터 읽을 바이트의 수|
 
-<img src='2020-12-03-16-56-16.png' width=600/>
+<img src='./CH2_FILE1/2020-12-03-16-56-16.png' width=600/>
 
 * file descriptor table에서 file table로 직접 접근 가능
 * file table에서 file descriptor로 직접 접근 불가능하고 system call을 이용해서 간접접근만 가능
@@ -291,7 +291,7 @@ ssize_t write(int filedes, const void* buffer, size_t n);
     - `write` 을 호출할 때, 커널에 있는 버퍼 캐시에 데이터를 쓴 후 리턴한다.
     - 디스크에 에러가 있거나 커널이 멈춘 경우 데이터가 날아갈 수 있다.
 
-<img src='2020-12-05-10-44-16.png' width = 600/>
+<img src='./CH2_FILE1/2020-12-05-10-44-16.png' width = 600/>
 
 ### `lseek()`
 * 파일의 offset은 `lseek` 호출로 세팅된다.
@@ -320,13 +320,13 @@ off_t lseek(int filedes, off_t offset, int start_flag)
         |SEEK_END|2|
 
 * 사용 방법   
-    <img src='2020-12-05-10-52-44.png' width=600/>   
+    <img src='./CH2_FILE1/2020-12-05-10-52-44.png' width=600/>   
     1. 맨 끝에서부터 16바이트 앞
     2. 이어 쓰기(O_APPEND)
     3. file size 알아내기
 
 * file hole   
-    <img src='2020-12-05-11-03-15.png' width=600/>   
+    <img src='./CH2_FILE1/2020-12-05-11-03-15.png' width=600/>   
     - 파일을 쓰다가 offset을 뒤로 옮기면 그 사이는 null로 채워진다.
     - 사이즈는 offset을 옮긴 후 쓴만큼 커진다.
 
