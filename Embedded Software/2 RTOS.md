@@ -87,11 +87,14 @@ prio = (y << 3) + x;
 * * *
 ### RTOS interrupt 관련 몇 가지 개념
 1. latency   
-문맥저장 전에 걸린 최대 시간
+문맥저장 전에 걸린 최대 시간   
+interrupt 들어온 시점 ~ CPU context store 시작 전까지
 2. response   
-interrupt latency + 문맥 저장 시간 + 커널 ISR 실행 시간
+interrupt latency + 문맥 저장 시간 + 커널 ISR 실행 시간   
+interrupt 들어온 시점 ~ 커널 ISR 실행 직전
 3. recovery
-우선 순위가 높은 task를 준비할 지 결정하는 시간 + 문맥 저장 시간 + interrupt로부터 리턴 실행 시간
+우선 순위가 높은 task를 준비할 지 결정하는 시간 + 문맥 저장 시간 + interrupt로부터 리턴 실행 시간   
+커널 ISR 실행 종료 ~ CPU context restore 끝날 때까지 시간
 #### 예시
 1. Foreground/Background   
     <img src='imgs/2020-10-27-19-57-56.png' width=500/>   
