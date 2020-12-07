@@ -1,22 +1,22 @@
 # CH10 Socket
-1. [Introduction](#1.-Introduction)
+1. [Introduction](#1-Introduction)
 
-2. [Addressing](#2.-Addressing)
+2. [Addressing](#2-Addressing)
 
-3. [Socket interface](#3.-Socket-interface)
-    * [`socket()`](#`socket()`)
+3. [Socket interface](#3-Socket-interface)
+    * [`socket()`](#socket())
 
-4. [TCP 방식](#4.-TCP-방식)
-    * [`bind()`](#`bind()`)
-    * [`listen()`](#`listen()`)
-    * [`accept()`](#`accept()`)
-    * [`connect()`](#`connect()`)
-    * [`send()`](#`send()`)
-    * [`recv()`](#`recv()`)
+4. [TCP 방식](#4-TCP-방식)
+    * [`bind()`](#bind())
+    * [`listen()`](#listen())
+    * [`accept()`](#accept())
+    * [`connect()`](#connect())
+    * [`send()`](#send())
+    * [`recv()`](#recv())
 
-5. [UDP 방식](#5.-UDP-방식)
-    * [`sendto()`](#`sendto()`)
-    * [`recvfrom()`](#`recvfrom()`)
+5. [UDP 방식](#5-UDP-방식)
+    * [`sendto()`](#sendto())
+    * [`recvfrom()`](#recvfrom())
 
 * * *
 ## 1. Introduction
