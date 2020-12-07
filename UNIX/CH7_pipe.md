@@ -294,3 +294,9 @@ void FD_ZERO(fd_set* fdset);
         exit (0);
     }
     ```
+
+## pipe와 fifo 차이
+1. pipe
+    - temporary file 생성해서 자식-부모 프로세스끼리 주고 받음
+2. fifo
+    - 프로세스가 종료되어도 channel은 permernant 하다.
