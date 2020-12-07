@@ -1,16 +1,16 @@
 # CH6 signal
-1. [Introduction](#1.-Introduction)
-2. [Signal Handling](#2.-Signal-Handling)
+1. [Introduction](#1-Introduction)
+2. [Signal Handling](#2-Signal-Handling)
     * [Signal Set](#Signal-Set)
-    * [`sigaction()`](#`sigaction()`)
-    * [`slow()`](#`slow()`)
-    * [`sigsetjmp()` 과 `siglongjmp()`](#`sigsetjmp()`-과-`siglongjmp()`)
-3. [signal blocking](#3.-signal-blocking)
-    * [`sigprocmask()`](#`sigprocmask()`)
-4. [Sending signal](#4.-Sending-signal)
-    * [`kill()`](#`kill()`)
-    * [`raise()`](#`raise()`)
-    * [`pause()`](#`pause()`)
+    * [`sigaction()`](#sigaction)
+    * [`slow()`](#slow)
+    * [`sigsetjmp()` 과 `siglongjmp()`](#sigsetjmp-과-siglongjmp)
+3. [signal blocking](#3-signal-blocking)
+    * [`sigprocmask()`](#sigprocmask)
+4. [Sending signal](#4-Sending-signal)
+    * [`kill()`](#kill)
+    * [`raise()`](#raise)
+    * [`pause()`](#pause)
 
 * * * 
 ## 1. Introduction

@@ -1,12 +1,12 @@
 # CH1 기초 개념과 용어
-1. [UNIX 구조](#1.-UNIX구조)
-2. [Loggin In](#2.-Loggin-In)
-3. [파일(File)과 디렉토리(Directory)](#3.-파일(File)과-디렉토리(Directory))
-4. [파일 타입(File Types)](#4.-파일-타입(File-Types))
-5. [소유자(Owner)](#5.-소유자(Owner))
-6. [권한(Permissions)](#6.-권한(Permissions))
-7. [프로세스(Process)](#7.-프로세스(Process))
-8. [System call](#8.-System-call)
+1. [UNIX 구조](#1-UNIX구조)
+2. [Loggin In](#2-Loggin-In)
+3. [파일(File)과 디렉토리(Directory)](#3-파일(File)과-디렉토리(Directory))
+4. [파일 타입(File Types)](#4-파일-타입(File-Types))
+5. [소유자(Owner)](#5-소유자(Owner))
+6. [권한(Permissions)](#6-권한(Permissions))
+7. [프로세스(Process)](#7-프로세스(Process))
+8. [System call](#8-System-call)
 * * *
 ### Unix 대표 특징
 * 대화형 시스템 : 유저가 명령을 내리면 시스템은 그 명령을 수행하고 결과를 출력

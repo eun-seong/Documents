@@ -1,24 +1,24 @@
 # CH8 IPC
-1. [Advanced IPC facilities](#1.-Advanced-IPC-facilities)
-    * [`ftok()`](#`ftok()`)
+1. [Advanced IPC facilities](#1-Advanced-IPC-facilities)
+    * [`ftok()`](#ftok)
 
-2. [Message Queue](#2.-Message-Queue)
-    * [`msgget()`](#`msgget()`)
-    * [`msgsnd()`](#`msgsnd()`)
-    * [`msgrcv()`](#`msgrcv()`)
-    * [`msgctl()`](#`msgctl()`)
+2. [Message Queue](#2-Message-Queue)
+    * [`msgget()`](#msgget)
+    * [`msgsnd()`](#msgsnd)
+    * [`msgrcv()`](#msgrcv)
+    * [`msgctl()`](#msgctl)
 
-3. [Semaphore](#3.-Semaphore)
-    * [`semget()`](#`semget()`)
-    * [`semctl()`](#`semctl()`)
-    * [`semop()`](#`semop()`)
-    * [`semop()` : SEM_UNDO](#`semop()`-:-SEM_UNDO)
+3. [Semaphore](#3-Semaphore)
+    * [`semget()`](#semget)
+    * [`semctl()`](#semctl)
+    * [`semop()`](#semop)
+    * [`semop()` : SEM_UNDO](#semop--sem_undo)
 
-4. [Shared memory](#4.-Shared-memory)
-    * [`shmget()`](#`shmget()`)
-    * [`shmat()`](#`shmat()`)
-    * [`shmdt()`](#`shmdt()`)
-    * [`shmctl()`](#`shmctl()`)
+4. [Shared memory](#4-Shared-memory)
+    * [`shmget()`](#shmget)
+    * [`shmat()`](#shmat)
+    * [`shmdt()`](#shmdt)
+    * [`shmctl()`](#shmctl)
 
 * * *
 ## 1. Advanced IPC facilities
