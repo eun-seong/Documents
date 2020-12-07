@@ -2,7 +2,7 @@
 1. [파일(File)](#1-파일(File))
 2. [UNIX file access primitevs](#2-UNIX-file-access-primitevs)
 3. [std input, std output, std error](#3-std-input,-std-output,-std-error)
-4. [Std I/O library](#4-Std-I/O-library)
+4. [Std I/O library](#4-Std-IO-library)
 5. [`errno` 변수](#5-errno-변수)
 6. [System call](#System-call)
     * [`open()`](#open)
@@ -13,7 +13,7 @@
     * [`lseek()`](#lseek)
     * [`dup()` and `dup2()`](#dup-and-dup2)
     * [`fcntl()`](#fcntl)
-7. [Standard I/O library](#Standard-I/O-library)
+7. [Standard I/O library](#Standard-IO-library)
 * * *
 ## 1. 파일(File)
 데이터를 위한 컨테이너

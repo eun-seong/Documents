@@ -3,7 +3,7 @@
     * [`pipe()`](#pipe)
 2. [FIFO](#2-FIFO)
     * [`mkfifo()`](#mkfifo)
-3. [I/O Multiplexing](#3.-I/O-Multiplexing)
+3. [I/O Multiplexing](#3.-IO-Multiplexing)
     * [`select()`](#select)
     * [`FD` family](#FD-family)
 

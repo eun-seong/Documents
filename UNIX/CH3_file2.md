@@ -1,7 +1,7 @@
 # CH3 파일(File) owndership, permission
 1. [multi-user 환경](#1-multi-user-환경)
 2. [File with multiple names](#2-File-with-multiple-names)
-3. [파일 정보 : `stat`과 `fstat`](#3-파일-정보-:-stat과-fstat)
+3. [파일 정보 : `stat`과 `fstat`](#3-파일-정보--stat과-fstat)
 4. [System call](#System-call)
     * [`umask()`](umask)
     * [`access()`](access)
