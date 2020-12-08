@@ -86,7 +86,7 @@ fd = open("/tmp/newfile", O_WRONLY|O_CREAT|O_TRUNC, 0644);
 * 모든 프로세스는 **process table** 안에 엔트리를 가지고 있다.
 * 프로세스 테이블 엔트리는 open한 파일 descriptor의 테이블을 가지고 있다.
 
-<img src='./CH2_FILE1/2020-12-05-11-24-04.png' width=600/>
+<img src='./CH2_FILE1/2020-12-05-11-24-04.png' width='800px'/>
 
 * process table entry   
     * index 0~2까지는 예약
