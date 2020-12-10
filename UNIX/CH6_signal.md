@@ -91,6 +91,7 @@
 ### Signal Set
 * signal을 모아놓는 비트맵
 * signal을 핸들링 중에 signal set에 있는 signal이 들어오는 것을 허용하지 않기 위해서 `sigprocmask()`를 사용하여 관리
+
 ```c++
 #include <signal.h>
 
@@ -106,9 +107,11 @@ int sigismember(const sigset_t *set, int signo);
 
 ### `sigaction()`
 * 특정 signal과 관련된 액션을 관리하거나 수정할 수 있다.
+
 ```c++
 int sigaction(int signo, const struct sigaction* restrict act, struct sigaction* restrict oact);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -120,7 +123,9 @@ int sigaction(int signo, const struct sigaction* restrict act, struct sigaction*
     |signo|signal number|
     |act|수정한 액션|
     |oact|이전 액션|
+
 * sigaction struct
+
     ```c++
     struct sigaction {
         void (*sa_handler)(int);   /* addr of signal handler, or SIG_IGN, or SIG_DFL */
@@ -131,6 +136,7 @@ int sigaction(int signo, const struct sigaction* restrict act, struct sigaction*
         void (*sa_sigaction)(int, siginfo_t *, void *);
     };
     ```
+
     |name|desc|
     |---|---|
     |sa_handler|signal-catch 함수의 주소|
@@ -148,6 +154,7 @@ int sigaction(int signo, const struct sigaction* restrict act, struct sigaction*
         |**SA_RESETHAND**|signal handling이 끝난 후 모든 것을 리셋하여 원위치시킴|
         |**SA_RESTART**|`slow()`이 실행 중에 signal이 들어오면 handling 함수를 다시 실행시킴|
         |SA_SIGINFO|설정할 경우 sa_handler 대신 sa_sigcation 함수를 사용, 시그널에 대한 정보를 함께 인수로 전달|
+
     - sa_mask는 `sigemptyset()`을 이용하여 초기화해야 한다.
 
 ### signal과 system call
@@ -181,6 +188,7 @@ int sigaction(int signo, const struct sigaction* restrict act, struct sigaction*
 int sigsetjmp(sigjmp_buf env, int savemask);
 void siglongjmp(sigjmp_buf env, int val);
 ```
+
 * `sigsetjmp()`
     * return
         |status|return value|desc|
@@ -200,13 +208,16 @@ void siglongjmp(sigjmp_buf env, int val);
         |---|---|
         |env|`sigsetjmp()`에서 저장했던 signal mask 변수|
         |val|`sigsetjmp()`의 리턴값으로 전달할 값|
+
 * * *
 ## 3. signal blocking
 ### `sigprocmask()`
 * 프로세스의 signal mask는 해당 프로세스에 전달되어 block된 signal set이다.
+
 ```c++
 int sigprocmask(int how, const sigset_t& restrict set, sigset_t* restrict oset);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -232,9 +243,11 @@ int sigprocmask(int how, const sigset_t& restrict set, sigset_t* restrict oset);
     - sender의 ruid, ruid는 
 ### `kill()`
 * 프로세스 혹은 프로세스 그룹에게 signal을 보낸다.
+
 ```c++
 int kill(pid_t pid, int signo);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -251,9 +264,11 @@ int kill(pid_t pid, int signo);
 
 ### `raise()`
 * 프로세스 자기 자신에게 signal을 보낸다.
+
 ```c++
 int raise(int signo);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -265,10 +280,13 @@ raise(signo);
 kill(getpid(), signo);
 
 ```
+
 ### `pause()`
+
 ```c++
 int pause(void);
 ```
+
 |status|return value|
 |---|---|
 |errno가 EINTR로 세팅|-1|

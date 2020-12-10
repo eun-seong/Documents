@@ -52,6 +52,7 @@
         char sa_data[14]; 	        /* variable-length address */
     };
     ```
+
 * IP address
     ```c++
     struct in_addr {    
@@ -75,6 +76,7 @@
 ```c++
 int socket(int domain, int type, int protocol);
 ```
+
 |status|return value|
 |---|---|
 |success|file(socket) descriptor|
@@ -88,6 +90,7 @@ int socket(int domain, int type, int protocol);
         |AF_INET6|IPv6 internet domain|
         |AF_UNIX|UNIX domain|
         |AF_UNSPEC|unspecified|
+
     - type
         |type|desc|
         |---|---|
@@ -95,6 +98,7 @@ int socket(int domain, int type, int protocol);
         |SOCK_RAW|datagram interface to IP|
         |SOCK_SEQPACKET|길이 고정, sequenced, reliable, connection-oriented messages|
         |SOCK_STREAM|sequenced, reliable, bidirectional, connection-oriented by stream|
+
     - protocol
         |protocol|
         |---|
@@ -107,6 +111,8 @@ int socket(int domain, int type, int protocol);
     ```c++
     sd = socket(AF_INET, SOCK_STREAM, 0);
     ```
+
+
 2. Connectionless(datagrams)
     - UDP
     ```c++
@@ -128,6 +134,7 @@ int socket(int domain, int type, int protocol);
 ```c++
 int bind(int sockfd, const struct sockaddr* addr, socklen_t len);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -138,6 +145,7 @@ int bind(int sockfd, const struct sockaddr* addr, socklen_t len);
 ```c++
 int listen(int sockfd, int backlog);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -151,6 +159,7 @@ int listen(int sockfd, int backlog);
 ```c++
 int accept(int sockfd, struct sockaddr* restrict addr, socklen_t* restrict len);
 ```
+
 |status|return value|
 |---|---|
 |success|file(socket) descriptor|
@@ -164,6 +173,7 @@ int accept(int sockfd, struct sockaddr* restrict addr, socklen_t* restrict len);
 ```c++
 int connect(int sockfd, const struct sockaddr* addr, socklen_t len);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -176,6 +186,7 @@ int connect(int sockfd, const struct sockaddr* addr, socklen_t len);
 ```c++
 ssize_t send(int sockfd, const void *buf, size_t nbytes, int flags);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -195,6 +206,7 @@ ssize_t send(int sockfd, const void *buf, size_t nbytes, int flags);
 ```c++
 ssize_t recv(int sockfd, void *buf, size_t nbytes, int flags);
 ```
+
 |status|return value|
 |---|---|
 |success|메세지 길이(바이트)|
@@ -279,6 +291,7 @@ main(){
     }
 }
 ```
+
 * Client
 ```c++
 #include <ctype.h>
@@ -318,6 +331,7 @@ main(){
     }
 }
 ```
+
 * * *
 ## 5. UDP 방식
 ### `sendto()`
@@ -325,6 +339,7 @@ main(){
 ssize_t sendto(int sockfd, const void *buf, size_t nbytes, int flags,
     struct sockaddr* restrict dest_addr, socklen_t destlen);
 ```
+
 |status|return value|
 |---|---|
 |success|보낸 바이트 수|
@@ -339,6 +354,7 @@ ssize_t sendto(int sockfd, const void *buf, size_t nbytes, int flags,
 ssize_t recvfrom(int sockfd, void* restrict buf, size_t len, int flags
     struct sockaddr* restrict send_addr, socklen_t* restrict addrlen);
 ```
+
 |status|return value|
 |---|---|
 |success|메세지 길이(바이트)|
@@ -390,6 +406,7 @@ main(){
     }
 }
 ```
+
 * Client
 ```c++
 #include <ctype.h>

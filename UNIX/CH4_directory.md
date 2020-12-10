@@ -48,6 +48,7 @@
     - 디렉토리의 소유자
     - superuser
 * 't'로 권한 나타냄   
+
     ```
     drwxrwxrwt
     ```
@@ -55,6 +56,7 @@
 * * *
 ## 2. 디렉토리 프로그래밍
 ### `dirent` 구조체
+
 ```c++
 #include <dirent.h>
 
@@ -163,6 +165,7 @@ struct dirent {
     |S_ISLNK()|symbolic link|
 
     - 예시
+
         ```c++
         if(S_ISCHR(buf.st_mode))
             printf("It's character device");
@@ -175,7 +178,8 @@ struct dirent {
 * 장치 파일의 고유 번호
 * device file만 가지고 있음   
     character special file, block special file
-* `major` , `minor` 매크로 사용(<sys/types.h>)   
+* `major` , `minor` 매크로 사용(<sys/types.h>)  
+ 
     ```c++
     major(buf.st_rdev);
     minor(buf.st_rdev);
@@ -186,10 +190,12 @@ struct dirent {
 * 보통 파일은 하드 디스크에 있으므로 하드 디스크의 장치 번호와 같음
 
 ### File System information
+
 ```c++
 int fstatvfs(int filedes, struct statvfs* buf);
 int statvfs(const char* path, struct statvfs* buf);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -233,9 +239,11 @@ int statvfs(const char* path, struct statvfs* buf);
 ## System call
 ### `mkdir()`
 * 해당 폴더에 execute 권한이 있어야 이동도할 수 있고 안에 있는 파일 실행 가능
+
 ```c++
 int mkdir(const char* pathname, mode_t mode);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -244,9 +252,11 @@ int mkdir(const char* pathname, mode_t mode);
 ### `rmdir()`
 * 빈 디렉토리 삭제
 * 빈 디렉토리는 '.'와 '..'만 포함하고 있음
+
 ```c++
 int rmdir(const char* pathname);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -256,9 +266,11 @@ int rmdir(const char* pathname);
 * `DIR`은 standard I/O library에서 `FILE`과 유사하게 실행
 * pointer를 적절하게 null checking 해야 함
 * 프로그램이 디렉토리를 접근하는 것을 완료하면 `closedir()`로 인해 close된다.
+
 ```c++
 DIR* opendir(const char* dirname);
 ```
+
 |status|return value|
 |---|---|
 |success|pointer|
@@ -266,9 +278,11 @@ DIR* opendir(const char* dirname);
 
 ### `closedir()`
 * dirptr가 가리키는 디렉토리 스트림을 close한다.
+
 ```c++
 int closedir(DIR* dirptr);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -277,9 +291,11 @@ int closedir(DIR* dirptr);
 ### `readdir()`
 * 첫 번째 디렉토리가 dirent 구조체로 리턴
 * 완료되면 다음 디렉토리 엔트리로 이동
+
 ```c++
 struct dirent* readdir(DIR* dp);
 ```
+
 |status|return value|
 |---|---|
 |success|pointer|
@@ -287,9 +303,11 @@ struct dirent* readdir(DIR* dp);
 
 ### `rewinddir()`
 * `rewinddir()`를 호출할 경우 `readdir()`가 호출될 때 다음 디렉토리는 첫 번째 디렉토리가 됨
+
 ```c++
 void rewinddir(DIR* dp);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -299,9 +317,11 @@ void rewinddir(DIR* dp);
 * `chdir`을 만드는 **프로세스에서만** 적용됨
 * path가 invalid 하거나 디렉토리에 execute 권한이 없을 경우 에러 발생
 * 디렉토리를 변경하거나 새로운 디렉토리의 파일 이름을 사용할 때 `chdir()`를 호출하면 더 효율적임
+
 ```c++
 int chdir(const char* path);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -309,9 +329,11 @@ int chdir(const char* path);
 
 ### `getcwd()`
 * 현재 디렉토리 이름이 리턴되어서 name에 복사
+
 ```c++
 char* getcwd(char* name, size_t size);
 ```
+
 |status|return value|
 |---|---|
 |success|name|
@@ -321,6 +343,7 @@ char* getcwd(char* name, size_t size);
 * directory tree walk
 * 모든 디렉토리를 탐색하며 `func()` 실행
 * `func()`가 0을 반환하지 않거나, tree의 bottom에 도달하면 탐색 종료
+
 ```c++
 int ftw(const char* path, int (*func)(), int depth);
 
@@ -328,6 +351,7 @@ int func(const char* name, const struct stat* sptr, int type){
     // definition
 }
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -359,6 +383,7 @@ int func(const char* name, const struct stat* sptr, int type){
 ### `sync()`
 * nonblocking wait
 * return 될 때까지 기다리지 않음
+
 ```c++
 void sync(void);
 ```
@@ -366,9 +391,11 @@ void sync(void);
 ### `fsync()`
 * blocking wait
 * file을 디스크에 쓰는 것을 완료할 때까지 return 되지 않음
+
 ```c++
 int fsync(int filedes)
 ```
+
 |status|return value|
 |---|---|
 |success|0|

@@ -14,18 +14,22 @@
 * 가장 간단한 interprocess communication 메커니즘
 
 * 예시
+
     ```
     $ who | wc -l
     ```
+
     <img src='./CH7_pipe/2020-12-06-20-55-02.png' width=600/>
     
     * who 명령어의 standard output이 pipe write로 변경됨
     * wc 명령어의 standard input이 pipe read로 변경됨
 
 ### `pipe()`
+
 ```c++
 int pipe(int filedes[2]);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -93,9 +97,11 @@ int pipe(int filedes[2]);
 
 ### `mkfifo()`
 * FIFO를 생성한다.
+
 ```c++
 int mkfifo(const char* pathname, mode_t mode);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -116,6 +122,7 @@ int mkfifo(const char* pathname, mode_t mode);
 
 * FIFO 파일이 read, write, close 될 경우 -> [pipe와 동일](#file-read,-write,-close)
 * 예시
+
     ```c++
     /* rcvmessage -- fifo를 통해 메시지를 받는다. */
     #include <fcntl.h>
@@ -144,6 +151,7 @@ int mkfifo(const char* pathname, mode_t mode);
         }
     }
     ```
+
     - fifo file을 오픈할 때 read만 할건데 `O_RDWR` 옵션을 준 이유❓
         1. write하는 프로세스가 없어서 open할 때 block됨
         2. **`read()`할 때 write하는 프로세스가 없기 때문에 -1을 리턴하게 되어 하는 일 없이 무한루프에 빠지게 됨(busy waiting)**
@@ -151,16 +159,19 @@ int mkfifo(const char* pathname, mode_t mode);
 * * *
 ## 3. I/O Multiplexing
 * 한 개의 descriptor로부터 `read()`를 하고 다른 파일에 `write()`할 경우에, loop 안에  blocking I/O를 사용할 수 있다.
+
     ```c++
     while((n = read(STDIN_FILENO, buf, BUFSIZ)) > 0) {
         if(write(STDOUT_FILENO, buf, n) != n) err_sys("write error");
     }
     ```
+
 * 2개의 descriptor로부터 read할 경우에는?   
     <img src='./CH7_pipe/2020-12-07-17-02-15.png' width=500/>
     - 이런 경우를 해결할 해결책이 필요함 -> **Multiplexign I/O Model**
 
 ### `select()`
+
 ```c++
 int select(
     int nfds,
@@ -170,6 +181,7 @@ int select(
     struct timeval *timeout
 );
 ```
+
 |status|return value|
 |---|---|
 |success|준비된 descriptor의 수|
@@ -194,15 +206,18 @@ int select(
         |NULL|wait forever, signal이 catch되거나 descriptor가 준비되면 return|
         |0|아무도 기다리지 않음|
         |not 0|그 수만큼 기다림|
+
     - readfds, writefds, execptfds
         + 안궁금하면 NULL로 쓰면 됨
 
 * `fd_set`은 ready file descriptor의 bitmap
 
 ### `FD` family
+
 ```c++
 int FD_ISSET(int fd, fd_set* fdset);
 ```
+
 |status|return value|
 |---|---|
 |fd가 set에 있는 경우|not 0|
@@ -217,7 +232,7 @@ void FD_ZERO(fd_set* fdset);
 * 예시
     - 3개의 자식 프로세스
     - 3개의 pipe
-    - 
+    
     ```c++
     #include <sys/time.h>
     #include <sys/wait.h>

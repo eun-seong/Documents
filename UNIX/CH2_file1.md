@@ -43,7 +43,9 @@
 |`unlink`|파일 삭제|
 |`remove`|파일 삭제|
 |`fcntl`|파일과 관련된 속성 제어|
+
 * `fcntl`을 제외한 모든 함수는 **Unbufferd I/O**가 제공하고, file descriptor로 작동한다.
+
 ### File Descriptor
 * 주민등록번호 같은 파일의 번호
 * 양수   
@@ -56,6 +58,7 @@
 |0|STDIN_FILENO|Standard input(keyboard)|
 |1|STDOUT_FILENO|Standard output(monitor)|
 |2|STDERR_FILENO|Standard error|
+
 
 * 0부터 2까지는 예약되어 있기 때문에 파일의 **descriptor는 3부터 시작한다.**
 ### File permissions
@@ -73,6 +76,7 @@
 fd = creat("/tmp/newfile", 0644);
 fd = open("/tmp/newfile", O_WRONLY|O_CREAT|O_TRUNC, 0644);
 ```
+
 ### Owner and permission of a new file
 * `open` 혹은 `creat`으로 파일을 생성할 경우
     - 새로운 링크를 추가하는 것이기 때문에 상위 디렉토리의 쓰기 권한이 필요하다.
@@ -124,21 +128,29 @@ fd = open("/tmp/newfile", O_WRONLY|O_CREAT|O_TRUNC, 0644);
 ## 3. std input, std output, std error
 ### Redirection
 1. 표준 입력 변경   
+
     ```
     $ prog_name < infile
     ```
+
     '<' 입력하게 되면 표준 입력 방식이 키보드에서 파일로 변경됨
+
     ```c++
     dup2(infile, 0);    // 0 : standard input -> keyboard
     ```
+
 2. 표준 출력 변경   
+
     ```
     $ prog_name > outfile
     ```
+
     '>' 입력하게 되면 표준 출력 방식이 모니터에서 파일로 변경됨
+
     ```c++
     dup2(outfile, 1);   // 1 : standard output -> monitor
     ```
+
 * * *
 
 ## 4. Std I/O library
@@ -177,6 +189,7 @@ fd = open("/tmp/newfile", O_WRONLY|O_CREAT|O_TRUNC, 0644);
 
 ## System call
 ### `open()`
+
 ```c
 int open(const char* pathname, int flags, mode_t mode);
 ```
@@ -188,6 +201,7 @@ int open(const char* pathname, int flags, mode_t mode);
 
 * flags   
     `O_RDONLY | O_WRONLY == O_WRONLY` 이기 때문에 `O_RDWR` 있어야 함
+
     |**flags**|bit|desc|
     |---|---|---|
     |`O_RDONLY`|00|only 읽기|
@@ -205,6 +219,7 @@ int open(const char* pathname, int flags, mode_t mode);
 
 * mode   
     `O_CREAT`일 경우에만 사용
+
     ```c
     // 예시
     fd = open('./file', O_WRONLY|O_CREAT, 0644);
@@ -215,6 +230,7 @@ int open(const char* pathname, int flags, mode_t mode);
 * 파일이 이미 존재하면 두 번째 인자는 무시
 * `open`과 다르게, file descriptor를 리턴하기 전에 존재하는 파일을 항상 삭제
 * `creat`는 writing only로 파일을 오픈한다.
+
 ```c++
 int creat(const char* pathname, mode_t mode);
 ```
@@ -229,9 +245,11 @@ int creat(const char* pathname, mode_t mode);
 * 오픈된 파일을 닫는다.
 * 혼돈을 방지하기 위해, 모든 파일은 프로그램이 실행을 완료하게 되면 자동으로 닫힌다.   
     -> 프로세스 테이블 날아감
+
 ```c++
 int close(int filedes);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -240,9 +258,11 @@ int close(int filedes);
 
 ### `read()`
 * 파일을 읽으면 현재 파일 위치에서 메모리로 바이트가 복사된 후 파일 포지션이 업데이트된다.
+
 ```c++
 ssize_t read(int filedes, void *buffer, size_t n);
 ```
+
 |status|return value|
 |---|---|
 |success|number of bytes read|
@@ -271,6 +291,7 @@ ssize_t read(int filedes, void *buffer, size_t n);
 ```c++
 ssize_t write(int filedes, const void* buffer, size_t n);
 ```
+
 |status|return value|
 |---|---|
 |success|number of bytes written|
@@ -297,9 +318,11 @@ ssize_t write(int filedes, const void* buffer, size_t n);
 * 파일의 offset은 `lseek` 호출로 세팅된다.
 * offset 이란❓   
     - 다음 `read` 혹은 `write`가 어디서 시작해야 하는지 체크해놓은, 레귤러 파일의 위치이다.
+
 ```c++
 off_t lseek(int filedes, off_t offset, int start_flag)
 ```
+
 |status|return value|
 |---|---|
 |success|new file offset|
@@ -321,12 +344,14 @@ off_t lseek(int filedes, off_t offset, int start_flag)
 
 * 사용 방법   
     <img src='./CH2_FILE1/2020-12-05-10-52-44.png' width=600/>   
+
     1. 맨 끝에서부터 16바이트 앞
     2. 이어 쓰기(O_APPEND)
     3. file size 알아내기
 
 * file hole   
-    <img src='./CH2_FILE1/2020-12-05-11-03-15.png' width=600/>   
+    <img src='./CH2_FILE1/2020-12-05-11-03-15.png' width=600/>  
+
     - 파일을 쓰다가 offset을 뒤로 옮기면 그 사이는 null로 채워진다.
     - 사이즈는 offset을 옮긴 후 쓴만큼 커진다.
 
@@ -377,6 +402,7 @@ int fcntl(int filedes, int cmd, ...);
 
 ## Standard I/O library
 ### `fopen()`
+
 ```c++
 FILE* fopen(const char* restrict pathname, const char* restrict type);
 ```
@@ -397,27 +423,33 @@ FILE* fopen(const char* restrict pathname, const char* restrict type);
     |`a+` `a+b` `ab+`|파일이 없으면 생성하고 읽기와 쓰기, 있으면 이어서 읽기와 쓰기|
 
 ### `getc()`
+
 ```c++
 int getc(FILE* istream);
 ```
+
 |status|return value|
 |---|---|
 |success|next character|
 |error|EOF or error|
 
 ### `putc()`
+
 ```c++
 int putc(FILE* istream);
 ```
+
 |status|return value|
 |---|---|
 |success|c|
 |error|EOF|
 
 ### `fprintf()`
+
 ```c++
 int fprintf(FILE* restrict fp, const char* restrict format, ...);
 ```
+
 |status|return value|
 |---|---|
 |success|number of characters|

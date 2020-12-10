@@ -46,6 +46,7 @@
 
 ### Permission Structure
 * IPC 객체가 생성될 때, 시스템은 IPC facility status structure도 함께 생성한다.
+
 ```c++
 struct ipc_perm {     
     uid_t  uid;  /* owner's effective user id */     
@@ -56,6 +57,7 @@ struct ipc_perm {
     …
 };
 ```
+
 * uid와 uid는 `mode`와 함께 접근 권한을 결정한다.
 * IPC facility가 생성될 때 `umask` 값은 영향을 받지 않는다.
 * IPC 생성자와 superuser만 `msgctl()`, `semctl()`, `shmctl()`을 호출하여 `uid`, `gid`, `mode` 필드를 수정할 수 있다.
@@ -72,9 +74,11 @@ struct ipc_perm {
     - file descriptor와 유사하게 행동하지만, file descriptor와 다른 점은 다른 프로세스가 같은 identifier 값으로 같은 IPC 객체를 사용할 수 있다.
 
 ### `ftok()`
+
 ```c++
 key_t ftok(const char* path, int id):
 ```
+
 |status|return value|
 |---|---|
 |success|key|
@@ -98,6 +102,7 @@ key_t ftok(const char* path, int id):
 3. user-defined key, 저장되어 있던 key 사용
 
 ### shell에서 IPC 자원 접근하기
+
 ```
 $ ipcs
 ```
@@ -107,6 +112,7 @@ $ ipcs
 ### Message queue
 * 서로 다른 프로세스끼리 메시지를 주고 받을 수 있다.
 * 메세지의 링크드 리스트는 커널에 저장되고 message queue identifier로 식별된다.
+
 ```c++
 /* <sys/msg.h> */
 struct msqid_ds {		
@@ -123,13 +129,16 @@ struct msqid_ds {
 	time_t 		        msg_ctime;         /* last-change time */
 }; 
 ```
+
 * data structure   
     <img src='./CH8_IPC/2020-12-07-21-20-22.png' width=600/>
 
 ### `msgget()`
+
 ```c++
 int msgget(key_t key, int flag);
 ```
+
 |status|return value|
 |---|---|
 |success|`key`와 관련된 identifier|
@@ -144,9 +153,11 @@ int msgget(key_t key, int flag);
     |ENOSPC|메시지 큐에 대한 시스템 전체 제한이 초과됨|
 
 ### `msgsnd()`
+
 ```c++
 int msgsnd(int msgid, const void* ptr, size_t nbytes, int flag);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -161,9 +172,11 @@ int msgsnd(int msgid, const void* ptr, size_t nbytes, int flag);
 
 
 ### `msgrcv()`
+
 ```c++
 ssize_t msgrcv(int msqid, void* ptr, size_t nbytes, long type, int flag);
 ```
+
 |status|return value|
 |---|---|
 |success|메세지의 데이터 부분의 사이즈|
@@ -187,9 +200,11 @@ ssize_t msgrcv(int msqid, void* ptr, size_t nbytes, long type, int flag);
         + 메세지가 너무 크고 `flag`를 지정하지 않으면, `E2BIG`이 리턴된다.
 
 ### `msgctl()`
+
 ```c++
 int msgctl(int msqid, int cmd, struct msqid_ds* buf);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -212,6 +227,7 @@ int msgctl(int msqid, int cmd, struct msqid_ds* buf);
 * 세마포어는 `wait()`와 `signal()`을 가지는 정수 변수이다.
     - `wait()` : down, P, lock          -> semaphore 값 - 1
     - `signal()` : up, V, unlock, post  -> semaphore 값 +1
+
 ```c++
 wait(&sem);
 /* critical section */
@@ -219,6 +235,7 @@ signal(&sem);
 ```
 
 * 세마포어 요소의 배열로 구성되어 있다.
+
 ```c++
 #include <sys/sem.h>
 struct semid_ds {
@@ -236,6 +253,7 @@ struct sem {
   ushort_t	 semzcnt;       /* # awaiting semval = 0 */
 };
 ```
+
 |name|desc|
 |---|---|
 |semval|음이 아닌 정수로 나타내는 세마포어의 값|
@@ -251,9 +269,11 @@ struct sem {
     <img src='./CH8_IPC/2020-12-07-22-12-07.png' width=600/>
 
 ### `semget()`
+
 ```c++
 int semget(key_t key, int nsems, int flag);
 ```
+
 |status|return value|
 |---|---|
 |success|semaphore identifier|
@@ -277,6 +297,7 @@ int semctl(int semid, int semnum, int cmd, .../* union seun arg */);
 
 * argument
     - arg : `cmd` 값으로 설정   
+
         ```c++
         union semun {     
             int              val;    /* for SETVAL */     
@@ -292,15 +313,18 @@ int semctl(int semid, int semnum, int cmd, .../* union seun arg */);
 
 ### `semop()`
 * 식별자 `semid`와 연관된 세모포어 집합에 대해 사용자 정의 세마포어 연산의 집합을 자동적으로 수행한다.
+
 ```c++
 int semop(int semid, struct sembuf semoparray[], size_t nops);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
 |error|-1|
 
 * sembuf structure
+
     ```c++
     struct sembuf {   
         unsigned short  sem_num;  /* member # in set (0, 1, ..., nsems-1) */   
@@ -348,6 +372,7 @@ struct shmid_ds {
 ```
 
 ### `shmget()`
+
 ```c++
 int shmget(key_t key, size_t size, int flag);
 ```
@@ -369,6 +394,7 @@ int shmget(key_t key, size_t size, int flag);
 ```c++
 void* shmat(int shmid, const coid* addr, int flag);
 ```
+
 |status|return value|
 |---|---|
 |success|공유메모리의 포인터|
@@ -386,9 +412,11 @@ void* shmat(int shmid, const coid* addr, int flag);
         + SHMLBA : low boundary address muliple, 2의 배수
 
 ### `shmdt()`
+
 ```c++
 int shmdt(void* addr);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -401,6 +429,7 @@ int shmdt(void* addr);
 ```c++
 int shmctl(int shmid, int cmd, struct shmid_ids* buf);
 ```
+
 |status|return value|
 |---|---|
 |success|0|

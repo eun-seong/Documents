@@ -46,6 +46,7 @@
     
 ### permission and file mode
 * permission
+
     ```
     rwx     rwx     rwx
     usrer   group   others
@@ -53,6 +54,7 @@
     -rwxrwxrwx      -> 파일
     drwxrwxrwx      -> 디렉토리
     ```
+
     - 유저 형식
         + user
         + group
@@ -92,9 +94,11 @@
     원래는 프로그램을 실행한 유저가 euid
 - S_IRUID, S_IWGID, S_IXVTX
 - 권한에서 `s`로 표시
+
 ```
 -rwsr-xr-x 1 user2 group2 ~~ a.out
 ```
+
 #### password를 어떻게 바꿀 수 있나?
 * `/etc/shadow`는 root만 read, write 가능
 * `/etc/passwd`가 `-rwsr-xr-x`이기 때문에 root 권한으로 실행 가능   
@@ -102,10 +106,12 @@
 
 ### 파일 생성 mask
 - 파일을 생성하는 도중에 다른 유저의 접근을 막음
+
 ```c++
 filedesc = open(pathname, O_CREAT, mode);
 filedesc = open(pathname, O_CREAT, (~mask) & mode); // masked
 ```
+
 mask : `000010010`
 
 
@@ -182,25 +188,31 @@ mask : `000010010`
 
 ## System call
 ### `umask()`
+
 ```c++
 mode_t umask(mode_t cmask)
 ```
+
 |status|return value|
 |---|---|
 |success|변경하기 전 파일 모드|
 
 * 예시
+
     ```c++
     oldmask = umask(022);
     ```
+
     022 == ~(rwx-w--w-)   
     -> 소유자를 제외한 나머지는 읽기만 가능
 
 ### `access()`
 * ruid와 rgid를 기반으로 pathname의 접근 권한 체크
+
 ```c++
 int access(const char* pathname, int amode);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -216,9 +228,11 @@ int access(const char* pathname, int amode);
 
 ### `chmod()`
 * 파일의 소유자나 superuser가 파일 권한 변경 가능
+
 ```c++
 int chmod(const char* pathname, mode_t newmode);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -232,6 +246,7 @@ int chmod(const char* pathname, mode_t newmode);
 ```c++
 int chmod(const char* pathname, uid_t owner_id, gid_t group_id);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -247,9 +262,11 @@ int chmod(const char* pathname, uid_t owner_id, gid_t group_id);
 * 하드링크
 * 새로운 디렉토리 엔트리를 생성하고 link count를 증가시킨다.
 * 디렉토리의 hard link 생성은 superuser만 가능하다.
+
 ```c++
 int link(const char* original_path, const char* new_path);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -271,6 +288,7 @@ int link(const char* original_path, const char* new_path);
 ```c++
 int unlink(const char* pathname);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -279,9 +297,11 @@ int unlink(const char* pathname);
 ### `rename()`
 * 이름 바꾸기
 * 디렉토리와 symbolic link도 변경 가능
+
 ```c++
 int rename(const char* oldname, const char* newname);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -290,9 +310,11 @@ int rename(const char* oldname, const char* newname);
 ### `symlink()`
 * symbolic link 파일이 open되었을 때도 realname으로 follow함
 * symname을 보고 싶을 땐 `readlink()`를 사용
+
 ```c++
 int symlink(const char* realname, const char* symname);
 ```
+
 |status|return value|
 |---|---|
 |success|0|
@@ -303,15 +325,18 @@ int symlink(const char* realname, const char* symname);
 2. 파일의 내용을 버퍼로 읽음
 3. close sympath
 * 원본 파일이 삭제될 경우, symbolic link를 볼 수는 있지만 `open`할 경우 `EEXIST` 에러가 발생
+
 ```c++
 ssize_t readlinke(const char* sympath, char* buffer, size_t bufsize);
 ```
+
 |status|return value|
 |---|---|
 |success|읽은 바이트의 개수|
 |error|-1|
 
 ### `stat()`
+
 ```c++
 #include <sys/stat.h>
 
@@ -319,6 +344,7 @@ int stat(const char* pathname, struct stat* buf)    // 파일의 정보
 int fstat(int filedes, struct stat* buf);           // 파일 시스템의 정보
 int lstat(const char* pathname, struct stat* buf);  // symbolic link 정보
 ```
+
 |status|return value|
 |---|---|
 |success|0|

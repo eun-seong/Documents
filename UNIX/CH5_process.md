@@ -24,14 +24,17 @@
 * * * 
 ## 0. Program Layout
 ### `main()` 함수
+
 ```c++
 int main(int argc, char* argv[]);
 ```
+
 * arguments
     |name|desc|
     |---|---|
     |argc|command-line 인수의 수|
     |argv|인수를 가리키는 포인터 배열|
+
 * 커널의 `exec` 함수 중 하나로 C 프로그램이 실행되면, main 함수가 실행되기 전에 special start-up routine이 호출된다.
 * 실행가능 한 프로그램 파일은 이 루틴을 프로그램의 시작 주소로 지정한다.
 * 이 start-up 루틴은 커널로부터 값을 가져온다.
@@ -91,17 +94,21 @@ int main(int argc, char* argv[]);
     - 유니크하지만 pid는 재사용될 수 있다.
 
 ### `getpid()`
+
 ```c++
 pid_t getpid(void);
 ```
+
 |status|return value|
 |---|---|
 |success|호출된 프로세스의 PID|
 
 ### `getppid()`
+
 ```c++
 pid_t getppid(void);
 ```
+
 |status|return value|
 |---|---|
 |success|호출된 프로세스의 PPID|
@@ -109,9 +116,11 @@ pid_t getppid(void);
 
 ### `fork()`
 * 호출한 프로세스의 복제한 새로운 프로세스 생성
+
 ```c++
 pid_t fork(void);
 ```
+
 |status|return value|
 |---|---|
 |success|child process일 때 0, 부모일 때 child의 PID|
@@ -149,6 +158,7 @@ int execve(const char* pathname, char* const argv[], char* const envp[]);
 int execlp(const char* filename, const char* arg0, .../*NULL*/);
 int execvp(const char* filename, char* const argv[]);
 ```
+
 |status|return value|
 |---|---|
 |success|**no return**|
@@ -166,6 +176,7 @@ int execvp(const char* filename, char* const argv[]);
 |---|---|---|
 |`fork`|same|diff(새로 생성)|
 |`exec`|diff(덮어 써버림)|same|
+
 ```c++
 #include <unistd.h>
 
@@ -193,6 +204,7 @@ int main(){
    }	
 }
 ```
+
 * * *
 ## 5. 상속되는 데이터와 file descriptor
 ### `fork()` 와 file, data
@@ -265,6 +277,7 @@ int main(){
         3. 취소 요청에 대한 마지막 스레드의 응답
 
 ### `exit()`
+
 ```c++
 // <stdlib.h>
 void exit(int status);
@@ -273,6 +286,7 @@ void _Exit(int status);
 // <unistd.h>
 void _exit(int status);
 ```
+
 * `exit`의 인수 status는 하위 8개 비트를 사용하여 부모 프로세스로 전달된다. 부모 프로세스에서는 상위 8개 비트를 사용하여 받는다.
 * 관례상 프로세스가 return
     - 0 : 정상적인 종료
@@ -292,9 +306,11 @@ void _exit(int status);
     - `wait()` 후 종료 프로세스의 proc entry가 proc table에서 해제된다.
 
 ### `wait()`
+
 ```c++
 pid_t wait(int* statloc);
 ```
+
 |status|return value|
 |---|---|
 |success|chidl pid, blocking wait|
@@ -307,14 +323,18 @@ pid_t wait(int* statloc);
 * return value가 -1일 경우, 자식이 존재하지 않는 것이다.
 * 부모 프로세스는 자식을 기다리며 무한정 대기할 수 있다.
 * statloc으로 자식이 죽을 때 정보를 가져올 수 있다.   
+
     ```c++
     int status;
     pid = wait(&status);
     ```
+
 ### `waitpid()`
+
 ```c++
 pid_t waitpid(pid_t pid, int* statloc, int options);
 ```
+
 |status|return value|
 |---|---|
 |success|chidl pid, blocking wait|
@@ -329,6 +349,7 @@ pid_t waitpid(pid_t pid, int* statloc, int options);
         | > 0 |해당 pid를 가진 자식 프로세스를 기다림|
         |0|호출한 프로세스와 같은 프로세스 그룹인 자식 아무나 기다림|
         | < 0 |해당 pid의 절대값에 해당하는 프로세스 그룹에 속한 자식 아무나 기다림|
+
     - optoins
         |constant|decs|
         |---|---|
@@ -362,6 +383,7 @@ pid_t waitpid(pid_t pid, int* statloc, int options);
 * * *
 ## 9. `smallsh` command processor
 ### command processor의 기본 로직
+
 ```c++
 while(EOF not typed)
 {
@@ -370,11 +392,13 @@ while(EOF not typed)
     Wait for child
 }
 ```
+
 <img src='./CH5_process/2020-12-06-04-14-46.png' width=600/>
 
 * * * 
 ## 10. Process 속성
 ### pid
+
 ```c++
 pid_t getpid(void);     // Returns: process ID of calling process
 pid_t getppid(void);    // Returns: parent process ID of calling process
@@ -403,6 +427,7 @@ gid_t getegid(void);    // Returns: effective group ID of calling process
     - pid_t data type
 * 각 프로세스 그룹은 프로세스 그룹 리더를 가질 수 있다.
     - pid == pgid 이면 그룹 리더이다.
+
 ```c++
 pid_t getpgrp(void);        // Returns: process group ID of calling process
 pid_t getpgid(pid_t pid);   // Returns: process group ID if OK, -1 on error
@@ -410,9 +435,11 @@ pid_t getpgid(pid_t pid);   // Returns: process group ID if OK, -1 on error
 
 ### `setpgid()`
 * 프로세스 group-id 변경
+
 ```c++
 int setpgid(pid_t pid, pid_t pgid);     // Returns: 0 if OK, -1 on error
 ```
+
 * arguments
     |arg|desc|
     |---|---|
