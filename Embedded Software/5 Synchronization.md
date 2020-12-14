@@ -29,6 +29,7 @@
 * OSEventGrp, OSEventTbl[]
     - OSRdyGrp, OSRdyTbl[]과 비슷
     - 이벤트의 발생을 기다리는 태스크들의 리스트
+    
     <img src='imgs/2020-10-28-14-20-24.png' width=600/>
 
 ### kernel functions
