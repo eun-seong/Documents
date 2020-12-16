@@ -1,11 +1,7 @@
 # 10 ARM
 1. [ARM 아키텍쳐](#1-ARM-아키텍쳐)
-
 2. [Programmer's model](#2-Programmer's-model)
-
 3. [Instruction set](#3-Instruction-set)
-
-
 
 * * *
 
@@ -227,7 +223,7 @@ ADD Rd, Rm, Rn
         3. base register에서 offset만큼 더하거나 뺌
         4. R1 : base register + off 주소값
 
-### Block register data tranfer
+#### Block register data tranfer
 - LDM, STM
 - 1~16 레지스터와 메모리 데이터 전송
 - 가장 낮은 레지스터의 번호가 항상 가장 낮은 메모리에 위치
