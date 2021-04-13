@@ -15,7 +15,7 @@ public class Main {
     private static final String make = "make";
     private static final String customerRate = "customerRate";
     private static final String customer = "customer";
-    private static int movieID, actorID, directorID, awardID,customerID;
+    private static int movieID;
     private static Connection connection;
     private static Statement stmt;
     private static ResultSet rs;
@@ -62,6 +62,12 @@ public class Main {
         Query1();
         Query2();
         Query3();
+        Query4();
+        Query5();
+        Query6();
+        Query7();
+        Query8();
+        Query9();
 
         stmt.close();
         connection.close();
@@ -109,13 +115,13 @@ public class Main {
 
         // create movieGenre table
         create(movieGenre,
-                "movieID int REFERENCES movie",
+                "movieID int REFERENCES movie ON DELETE CASCADE",
                 "genreName varchar(50) REFERENCES genre",
                 "PRIMARY KEY (movieID, genreName)");
 
         // create movieObtain table
         create(movieObtain,
-                "movieID int REFERENCES movie",
+                "movieID int REFERENCES movie ON DELETE CASCADE",
                 "awardID int REFERENCES award",
                 "year int",
                 "PRIMARY KEY (movieID, awardID)");
@@ -136,21 +142,21 @@ public class Main {
 
         // create casting table
         create(casting,
-                "movieID int REFERENCES movie",
+                "movieID int REFERENCES movie ON DELETE CASCADE",
                 "actorID int REFERENCES actor",
                 "role varchar(50)",
                 "PRIMARY KEY (movieID, actorID)");
 
         // create make table
         create(make,
-                "movieID int REFERENCES movie",
+                "movieID int REFERENCES movie ON DELETE CASCADE",
                 "directorID int REFERENCES director",
                 "PRIMARY KEY (movieID, directorID)");
 
         // create customerRate table
         create(customerRate,
-                "customerID int REFERENCES customer",
-                "movieID int REFERENCES movie",
+                "customerID int REFERENCES customer ON DELETE CASCADE",
+                "movieID int REFERENCES movie ON DELETE CASCADE",
                 "rate int",
                 "PRIMARY KEY (customerID, movieID)");
 
@@ -241,7 +247,7 @@ public class Main {
 
         // Edward Scissorhands
         movieID = findID(movie, "Edward Scissorhands");
-        actorID = findID(actor, "Johnny Depp");
+        int actorID = findID(actor, "Johnny Depp");
         insert(false, casting, Integer.toString(movieID), Integer.toString(actorID), "'Main actor'");
         actorID = findID(actor, "Winona Ryder");
         insert(false, casting, Integer.toString(movieID), Integer.toString(actorID), "'Main actor'");
@@ -279,7 +285,7 @@ public class Main {
         // movieID, directorID
         // Edward Scissorhands
         movieID = findID(movie, "Edward Scissorhands");
-        directorID = findID(director,"Tim Burton");
+        int directorID = findID(director, "Tim Burton");
         insert(false, make, Integer.toString(movieID), Integer.toString(directorID));
 
         // Alice In Wonderland
@@ -329,7 +335,7 @@ public class Main {
         insertObtain(movie, "Edward Scissorhands", "Best fantasy movie", 1991);
 
         // 2.6
-        printStatement("2.6Alice In Wonderland won the \"Best fantasy movie\" award in 2011");
+        printStatement("2.6 Alice In Wonderland won the \"Best fantasy movie\" award in 2011");
         insertObtain(movie, "Alice In Wonderland", "Best fantasy movie", 2011);
 
         // 2.7
@@ -370,6 +376,83 @@ public class Main {
         insertCustomerRate("John", 5, "awardName = 'Best director'", make, directorObtain, award);
     }
 
+    public static void Query4() {
+        printStatement("Select the names of the movies whose actor are dead");
+        String sql = "SELECT movieName\n" +
+                "FROM (\n" +
+                "\tSELECT actorID FROM actor\n" +
+                "\tWHERE dateOfDeath IS NOT null\n" +
+                ") actor_death\n" +
+                "NATURAL JOIN movie NATURAL JOIN casting";
+        printSelectResult(sql);
+    }
+
+    public static void Query5() {
+        printStatement("Select the names of the directors who cast the same actor more than once");
+        String sql = "SELECT directorName\n" +
+                "FROM (\n" +
+                "\tSELECT directorID, count((actorID, directorID)) AS act_cnt\n" +
+                "\tFROM casting NATURAL JOIN make\n" +
+                "\tGROUP BY (directorID, actorID)\n" +
+                "\tHAVING count((actorID, directorID)) > 1\n" +
+                ") actor_count\n" +
+                "NATURAL JOIN director";
+        printSelectResult(sql);
+    }
+
+    public static void Query6() {
+        printStatement("Select the names of the movies and the genres, where movies have the common genre");
+        String sql = "SELECT movieName, genreName\n" +
+                "FROM movie NATURAL JOIN movieGenre\n" +
+                "WHERE genreName IN (\n" +
+                "\tSELECT genreName\n" +
+                "\tFROM movieGenre\n" +
+                "\tGROUP BY genreName\n" +
+                "\tHAVING count(movieID) > 1\n" +
+                ")";
+        printSelectResult(sql);
+    }
+
+    public static void Query7() {
+        printStatement("Delete the movies whose director or actor did not get any award and delete data from related tables");
+        String sql = "DELETE FROM movie\n" +
+                "WHERE movieID in (\n" +
+                "\t(SELECT DISTINCT movieID\n" +
+                "\tFROM (\n" +
+                "\t\tSELECT directorID FROM director\n" +
+                "\t\tWHERE directorID NOT IN (\n" +
+                "\t\t\tSELECT directorID FROM directorObtain\n" +
+                "\t\t)\n" +
+                "\t) director_no_award\n" +
+                "\tNATURAL JOIN make)\n" +
+                "\tUNION\n" +
+                "\t(SELECT DISTINCT movieID\n" +
+                "\tFROM (\n" +
+                "\t\tSELECT actorID FROM actor\n" +
+                "\t\tWHERE actorID NOT IN (\n" +
+                "\t\t\tSELECT actorID FROM actorObtain\n" +
+                "\t\t)\n" +
+                "\t) actor_no_award\n" +
+                "\tNATURAL JOIN casting)\n" +
+                ")";
+        printDeleteResult(sql, movie, movieGenre, movieObtain, casting, make, customerRate);
+    }
+
+    public static void Query8() {
+        printStatement("Delete all customers and delete data from related tables");
+        String sql = "DELETE FROM customer";
+        printDeleteResult(sql, customer);
+    }
+
+    public static void Query9() {
+        printStatement("Delete all tables and data (make the database empty)");
+        String sql = "DROP TABLE director, actor, movie, customer, award, genre, " +
+                "movieGenre, movieObtain, actorObtain, directorObtain, " +
+                "casting, make, customerRate";
+        printDeleteResult(sql);
+    }
+
+    // create initial table
     public static void create(String tableName, String...args) {
         try {
             StringBuilder sb = new StringBuilder();
@@ -389,6 +472,7 @@ public class Main {
         }
     }
 
+    // insert initial data to each table
     public static void insert(boolean isPrinted, String tableName, String... args) {
         try {
             StringBuilder sb = new StringBuilder();
@@ -402,16 +486,20 @@ public class Main {
 
             String sql = sb.append(");").toString();
             stmt.executeUpdate(sql);
-            if(isPrinted) printTable(sql, tableName);
+            if(isPrinted) {
+                printTranslatedSQL(sql);
+                printTable(tableName);
+            }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
+    // insert data to Obtain table
     public static void insertObtain(String objectName, String conditionValue, String awardName, int year) {
         int objectID = findID(objectName, conditionValue);
-        awardID = findID(award, awardName);
+        int awardID = findID(award, awardName);
 
         // award가 등록이 되어 있지 않을 경우
         if(awardID == -1) {
@@ -424,21 +512,12 @@ public class Main {
         insert(true, objectName+"Obtain", Integer.toString(objectID), Integer.toString(awardID), Integer.toString(year));
     }
 
-    public static void updateMovieRate(int movieID, double newRate) {
-        String sql = "UPDATE movie SET avgRate = " + newRate + " WHERE movieID = " + movieID;
-        try{
-            stmt.executeUpdate(sql);
-            printTable(sql, "movie");
-        } catch (SQLException e){
-            e.printStackTrace();
-        }
-    }
-
+    // Query 2
     public static void insertCustomerRate(String customerName, int ratingScore, String condition, String... joinTables) {
-        //// 1. customerRate에 데이터 추가
-        // customer에서 customerID 가져오기
-        customerID = findID(customer,  customerName);
-        // movie에서 movieID 가져오기
+        //// 1. insert data to customerRate table
+        // find customerID
+        int customerID = findID(customer, customerName);
+        // find movieID
         String sql = findMovieIDByJoin(condition, joinTables);
         System.out.println(sql);
         try {
@@ -447,7 +526,7 @@ public class Main {
 
             while (selectRs.next()) {
                 movieID = selectRs.getInt(1);
-                // customerRate에 저장
+                // insert data to customerRate table
                 insert(true, customerRate, Integer.toString(customerID), Integer.toString(movieID), Integer.toString(ratingScore));
             }
             selectStmt.close();
@@ -456,8 +535,8 @@ public class Main {
             e.printStackTrace();
         }
 
-        //// 2. movie 평점 업데이트
-        // customerRate에서 movieID 별로 rate 평균내기
+        //// 2. update movie rate
+        // calc average of rate for each movie
         try {
             Statement rateStmt = connection.createStatement();
             sql = "SELECT movieID, newRate " +
@@ -473,7 +552,7 @@ public class Main {
             while (rateRs.next()) {
                 movieID = rateRs.getInt(1);
                 double newRate = rateRs.getDouble(2);
-                // movie에 aveRate 업데이트
+                // update avgRate if necessary
                 updateMovieRate(movieID, newRate);
             }
             rateStmt.close();
@@ -482,6 +561,20 @@ public class Main {
         }
     }
 
+    // Query 2
+    // update movie rate
+    public static void updateMovieRate(int movieID, double newRate) {
+        String sql = "UPDATE movie SET avgRate = " + newRate + " WHERE movieID = " + movieID;
+        try{
+            stmt.executeUpdate(sql);
+            printTranslatedSQL(sql);
+            printTable("movie");
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    // find ID in actor, director, movie table
     public static int findID(String tableName, String conditionValue){
         String ID = tableName + "ID";
         String conditionColumn = tableName + "Name";
@@ -498,6 +591,8 @@ public class Main {
         return -1;
     }
 
+    // Query 3
+    // find movieID for rating
     public static String findMovieIDByJoin(String condition, String... joinTables){
         StringBuilder sb = new StringBuilder();
         sb.append("SELECT movieID FROM ");
@@ -505,23 +600,55 @@ public class Main {
 
         for(int i=0;i<sz;i++) {
             sb.append(joinTables[i]);
-            if(i != sz-1) sb.append(" natural join ");
+            if(i != sz-1) sb.append(" NATURAL JOIN ");
         }
 
         sb.append(" WHERE ").append(condition);
         return sb.toString();
     }
 
-    public static void printTable(String translatedSQL, String tableName){
-        System.out.println("Translated SQL : " + translatedSQL);
-        System.out.printf("-----< %s >-----\n", tableName);
+    // print table affected to query
+    public static void printTable(String... tables){
+        for (String table : tables) {
+            System.out.printf("-----< %s >-----\n", table);
 
-        try {
-            String sql = "SELECT * FROM " + tableName;
-            rs = stmt.executeQuery(sql);
+            try {
+                String sql = "SELECT * FROM " + table;
+                rs = stmt.executeQuery(sql);
+                ResultSetMetaData rsmd = rs.getMetaData();
+                int columnCnt = rsmd.getColumnCount();
+
+                // print culumn
+                for (int i = 1; i <= columnCnt; i++) {
+                    System.out.printf("|%-25s", rsmd.getColumnName(i));
+                }
+                System.out.print("\n");
+
+                // print rows
+                while (rs.next()) {
+                    for (int i = 1; i <= columnCnt; i++) {
+                        System.out.printf("|%-25s", rs.getObject(i));
+                    }
+                    System.out.print("\n");
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // Query 4, 5, 6
+    // select query
+    public static void printSelectResult(String translatedSQL){
+        System.out.println("Translated SQL : \n" + translatedSQL);
+        try{
+            ResultSet rs = stmt.executeQuery(translatedSQL);
             ResultSetMetaData rsmd = rs.getMetaData();
-            int columnCnt = rsmd.getColumnCount();
+            String tableName = rsmd.getTableName(1);
+            System.out.printf("-----< %s >-----\n", tableName);
 
+            int columnCnt = rsmd.getColumnCount();
             // print culumn
             for(int i=1;i<=columnCnt;i++){
                 System.out.printf("|%-25s", rsmd.getColumnName(i));
@@ -535,17 +662,33 @@ public class Main {
                 }
                 System.out.print("\n");
             }
-
-        } catch (SQLException e){
+        }catch (SQLException e){
             e.printStackTrace();
         }
     }
 
-    public static void printSelectResult(ResultSet rs){
+    // Query 7, 8, 9
+    // delete rows
+    public static void printDeleteResult(String translatedSQL, String... tables){
+        try{
+            stmt.executeUpdate(translatedSQL);
 
+            // print
+            printTranslatedSQL(translatedSQL);
+            printTable(tables);
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
     }
 
+    // print statement
     public static void printStatement(String statement){
         System.out.printf("\n[::Statement::] %s\n", statement);
     }
+
+    // print translated SQL
+    public static void printTranslatedSQL(String translatedSQL){
+        System.out.println("--Translated SQL--\n" + translatedSQL);
+    }
+
 }
