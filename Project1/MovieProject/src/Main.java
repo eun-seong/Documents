@@ -1,6 +1,10 @@
 import java.sql.*;
 
 public class Main {
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
     private static final String DEFAULT = "DEFAULT";
     private static final String director = "director";
     private static final String actor = "actor";
@@ -115,13 +119,13 @@ public class Main {
 
         // create movieGenre table
         create(movieGenre,
-                "movieID int REFERENCES movie ON DELETE CASCADE",
+                "movieID int REFERENCES movie ON DELETE CASCADE ON UPDATE CASCADE",
                 "genreName varchar(50) REFERENCES genre",
                 "PRIMARY KEY (movieID, genreName)");
 
         // create movieObtain table
         create(movieObtain,
-                "movieID int REFERENCES movie ON DELETE CASCADE",
+                "movieID int REFERENCES movie ON DELETE CASCADE ON UPDATE CASCADE",
                 "awardID int REFERENCES award",
                 "year int",
                 "PRIMARY KEY (movieID, awardID)");
@@ -142,25 +146,25 @@ public class Main {
 
         // create casting table
         create(casting,
-                "movieID int REFERENCES movie ON DELETE CASCADE",
+                "movieID int REFERENCES movie ON DELETE CASCADE ON UPDATE CASCADE",
                 "actorID int REFERENCES actor",
                 "role varchar(50)",
                 "PRIMARY KEY (movieID, actorID)");
 
         // create make table
         create(make,
-                "movieID int REFERENCES movie ON DELETE CASCADE",
+                "movieID int REFERENCES movie ON DELETE CASCADE ON UPDATE CASCADE",
                 "directorID int REFERENCES director",
                 "PRIMARY KEY (movieID, directorID)");
 
         // create customerRate table
         create(customerRate,
-                "customerID int REFERENCES customer ON DELETE CASCADE",
-                "movieID int REFERENCES movie ON DELETE CASCADE",
+                "customerID int REFERENCES customer ON DELETE CASCADE ON UPDATE CASCADE",
+                "movieID int REFERENCES movie ON DELETE CASCADE ON UPDATE CASCADE",
                 "rate int",
                 "PRIMARY KEY (customerID, movieID)");
 
-        System.out.println("creating tables complete.");
+        System.out.println("Tables created!");
 
 
 
@@ -213,29 +217,29 @@ public class Main {
         // movieID, genreName
 
         // get movieID of Edward
-        movieID = findID(movie, "Edward Scissorhands");
+        movieID = findID(false, movie, "Edward Scissorhands");
         insert(false, movieGenre, Integer.toString(movieID), "'Fantasy'");
         insert(false, movieGenre, Integer.toString(movieID), "'Romance'");
 
         // get movieID of Alice
-        movieID = findID(movie,  "Alice In Wonderland");
+        movieID = findID(false, movie,  "Alice In Wonderland");
         insert(false, movieGenre, Integer.toString(movieID), "'Fantasy'");
         insert(false, movieGenre, Integer.toString(movieID), "'Adventure'");
         insert(false, movieGenre, Integer.toString(movieID), "'Family'");
 
         // get movieID of Network
-        movieID = findID(movie, "The Social Network");
+        movieID = findID(false, movie, "The Social Network");
         insert(false, movieGenre, Integer.toString(movieID), "'Drama'");
 
         // get movieID of Knight
-        movieID = findID(movie, "The Dark Knight");
+        movieID = findID(false, movie, "The Dark Knight");
         insert(false, movieGenre, Integer.toString(movieID), "'Action'");
         insert(false, movieGenre, Integer.toString(movieID), "'Drama'");
         insert(false, movieGenre, Integer.toString(movieID), "'Mystery'");
         insert(false, movieGenre, Integer.toString(movieID), "'Thriller'");
 
         // get movieID of Knight
-        movieID = findID(movie, "Dunkirk");
+        movieID = findID(false, movie, "Dunkirk");
         insert(false, movieGenre, Integer.toString(movieID), "'Action'");
         insert(false, movieGenre, Integer.toString(movieID), "'Drama'");
         insert(false, movieGenre, Integer.toString(movieID), "'Thriller'");
@@ -246,69 +250,69 @@ public class Main {
         // movieID, actorID, role
 
         // Edward Scissorhands
-        movieID = findID(movie, "Edward Scissorhands");
-        int actorID = findID(actor, "Johnny Depp");
+        movieID = findID(false, movie, "Edward Scissorhands");
+        int actorID = findID(false, actor, "Johnny Depp");
         insert(false, casting, Integer.toString(movieID), Integer.toString(actorID), "'Main actor'");
-        actorID = findID(actor, "Winona Ryder");
+        actorID = findID(false, actor, "Winona Ryder");
         insert(false, casting, Integer.toString(movieID), Integer.toString(actorID), "'Main actor'");
 
         // Alice In Wonderland
-        movieID = findID(movie, "Alice In Wonderland");
-        actorID = findID(actor, "Johnny Depp");
+        movieID = findID(false, movie, "Alice In Wonderland");
+        actorID = findID(false, actor, "Johnny Depp");
         insert(false, casting, Integer.toString(movieID), Integer.toString(actorID), "'Main actor'");
-        actorID = findID(actor, "Mia Wasikowska");
+        actorID = findID(false, actor, "Mia Wasikowska");
         insert(false, casting, Integer.toString(movieID), Integer.toString(actorID), "'Main actor'");
 
         // The Social Network
-        movieID = findID(movie, "The Social Network");
-        actorID = findID(actor, "Jesse Eisenberg");
+        movieID = findID(false, movie, "The Social Network");
+        actorID = findID(false, actor, "Jesse Eisenberg");
         insert(false, casting, Integer.toString(movieID), Integer.toString(actorID), "'Main actor'");
-        actorID = findID(actor, "Justin Timberlake");
+        actorID = findID(false, actor, "Justin Timberlake");
         insert(false, casting, Integer.toString(movieID), Integer.toString(actorID), "'Supporting Actor'");
 
         // The Dark Knight
-        movieID = findID(movie, "The Dark Knight");
-        actorID = findID(actor, "Christian Bale");
+        movieID = findID(false, movie, "The Dark Knight");
+        actorID = findID(false, actor, "Christian Bale");
         insert(false, casting, Integer.toString(movieID), Integer.toString(actorID), "'Main actor'");
-        actorID = findID(actor, "Heath Ledger");
+        actorID = findID(false, actor, "Heath Ledger");
         insert(false, casting, Integer.toString(movieID), Integer.toString(actorID), "'Main actor'");
 
         // Dunkirk
-        movieID = findID(movie, "Dunkirk");
-        actorID = findID(actor, "Fionn Whitehead");
+        movieID = findID(false, movie, "Dunkirk");
+        actorID = findID(false, actor, "Fionn Whitehead");
         insert(false, casting, Integer.toString(movieID), Integer.toString(actorID), "'Main actor'");
-        actorID = findID(actor, "Tom Hardy");
+        actorID = findID(false, actor, "Tom Hardy");
         insert(false, casting, Integer.toString(movieID), Integer.toString(actorID), "'Supporting Actor'");
 
 
         ////// insert make data
         // movieID, directorID
         // Edward Scissorhands
-        movieID = findID(movie, "Edward Scissorhands");
-        int directorID = findID(director, "Tim Burton");
+        movieID = findID(false, movie, "Edward Scissorhands");
+        int directorID = findID(false, director, "Tim Burton");
         insert(false, make, Integer.toString(movieID), Integer.toString(directorID));
 
         // Alice In Wonderland
-        movieID = findID(movie, "Alice In Wonderland");
-        directorID = findID(director,"Tim Burton");
+        movieID = findID(false, movie, "Alice In Wonderland");
+        directorID = findID(false, director,"Tim Burton");
         insert(false, make, Integer.toString(movieID), Integer.toString(directorID));
 
         // The Social Network
-        movieID = findID(movie, "The Social Network");
-        directorID = findID(director,"David Fincher");
+        movieID = findID(false, movie, "The Social Network");
+        directorID = findID(false, director,"David Fincher");
         insert(false, make, Integer.toString(movieID), Integer.toString(directorID));
 
         // The Dark Knight
-        movieID = findID(movie, "The Dark Knight");
-        directorID = findID(director,"Christopher Nolan");
+        movieID = findID(false, movie, "The Dark Knight");
+        directorID = findID(false, director,"Christopher Nolan");
         insert(false, make, Integer.toString(movieID), Integer.toString(directorID));
 
         // Dunkirk
-        movieID = findID(movie, "Dunkirk");
-        directorID = findID(director,"Christopher Nolan");
+        movieID = findID(false, movie, "Dunkirk");
+        directorID = findID(false, director,"Christopher Nolan");
         insert(false, make, Integer.toString(movieID), Integer.toString(directorID));
 
-        System.out.println("Initial data inserted.");
+        System.out.println("Initial data inserted!");
     }
 
     public static void Query2(){
@@ -352,12 +356,12 @@ public class Main {
         // customerRate : customerID, movieID, rate
         // update movie rate
         // 3.1
-        printStatement("3.1 Ethan rates 5 to “Dunkirk”");
+        printStatement("3.1 Ethan rates 5 to \"Dunkirk\"");
         insertCustomerRate("Ethan", 5, "movieName = 'Dunkirk'", movie);
 
         // 3.2
         // Edward, Alice
-        printStatement("3.2 Bell rates 5 to the movies whose director is “Tim Burton”");
+        printStatement("3.2 Bell rates 5 to the movies whose director is \"Tim Burton\"");
         insertCustomerRate("Bell", 5, "directorName = 'Tim Burton'", make, director);
 
         // 3.3
@@ -372,13 +376,13 @@ public class Main {
 
         // 3.5
         // Knight, Dunkirk
-        printStatement("3.5 John rates 5 to the movies whose director won the “Best director” award");
+        printStatement("3.5 John rates 5 to the movies whose director won the \"Best director\" award");
         insertCustomerRate("John", 5, "awardName = 'Best director'", make, directorObtain, award);
     }
 
     public static void Query4() {
-        printStatement("Select the names of the movies whose actor are dead");
-        String sql = "SELECT movieName\n" +
+        printStatement("4 Select the names of the movies whose actor are dead");
+        String sql = "\nSELECT movieName\n" +
                 "FROM (\n" +
                 "\tSELECT actorID FROM actor\n" +
                 "\tWHERE dateOfDeath IS NOT null\n" +
@@ -388,8 +392,8 @@ public class Main {
     }
 
     public static void Query5() {
-        printStatement("Select the names of the directors who cast the same actor more than once");
-        String sql = "SELECT directorName\n" +
+        printStatement("5 Select the names of the directors who cast the same actor more than once");
+        String sql = "\nSELECT directorName\n" +
                 "FROM (\n" +
                 "\tSELECT directorID, count((actorID, directorID)) AS act_cnt\n" +
                 "\tFROM casting NATURAL JOIN make\n" +
@@ -401,8 +405,8 @@ public class Main {
     }
 
     public static void Query6() {
-        printStatement("Select the names of the movies and the genres, where movies have the common genre");
-        String sql = "SELECT movieName, genreName\n" +
+        printStatement("6 Select the names of the movies and the genres, where movies have the common genre");
+        String sql = "\nSELECT movieName, genreName\n" +
                 "FROM movie NATURAL JOIN movieGenre\n" +
                 "WHERE genreName IN (\n" +
                 "\tSELECT genreName\n" +
@@ -414,24 +418,20 @@ public class Main {
     }
 
     public static void Query7() {
-        printStatement("Delete the movies whose director or actor did not get any award and delete data from related tables");
-        String sql = "DELETE FROM movie\n" +
+        printStatement("7 Delete the movies whose director or actor did not get any award and delete data from related tables");
+        String sql = "\nDELETE FROM movie\n" +
                 "WHERE movieID in (\n" +
                 "\t(SELECT DISTINCT movieID\n" +
                 "\tFROM (\n" +
                 "\t\tSELECT directorID FROM director\n" +
-                "\t\tWHERE directorID NOT IN (\n" +
-                "\t\t\tSELECT directorID FROM directorObtain\n" +
-                "\t\t)\n" +
+                "\t\tWHERE directorID NOT IN (SELECT directorID FROM directorObtain)\n" +
                 "\t) director_no_award\n" +
                 "\tNATURAL JOIN make)\n" +
                 "\tUNION\n" +
                 "\t(SELECT DISTINCT movieID\n" +
                 "\tFROM (\n" +
                 "\t\tSELECT actorID FROM actor\n" +
-                "\t\tWHERE actorID NOT IN (\n" +
-                "\t\t\tSELECT actorID FROM actorObtain\n" +
-                "\t\t)\n" +
+                "\t\tWHERE actorID NOT IN (SELECT actorID FROM actorObtain)\n" +
                 "\t) actor_no_award\n" +
                 "\tNATURAL JOIN casting)\n" +
                 ")";
@@ -439,13 +439,13 @@ public class Main {
     }
 
     public static void Query8() {
-        printStatement("Delete all customers and delete data from related tables");
+        printStatement("8 Delete all customers and delete data from related tables");
         String sql = "DELETE FROM customer";
         printDeleteResult(sql, customer);
     }
 
     public static void Query9() {
-        printStatement("Delete all tables and data (make the database empty)");
+        printStatement("9 Delete all tables and data (make the database empty)");
         String sql = "DROP TABLE director, actor, movie, customer, award, genre, " +
                 "movieGenre, movieObtain, actorObtain, directorObtain, " +
                 "casting, make, customerRate";
@@ -498,14 +498,13 @@ public class Main {
 
     // insert data to Obtain table
     public static void insertObtain(String objectName, String conditionValue, String awardName, int year) {
-        int objectID = findID(objectName, conditionValue);
-        int awardID = findID(award, awardName);
+        int objectID = findID(true, objectName, conditionValue);
+        int awardID = findID(true, award, awardName);
 
-        // award가 등록이 되어 있지 않을 경우
+        // insert new award data to award table
         if(awardID == -1) {
-            // award 등록(insert)
             insert(true, award, DEFAULT, "'"+awardName+"'");
-            awardID = findID(award, awardName);
+            awardID = findID(true, award, awardName);
         }
 
         // insert obtain data
@@ -516,10 +515,10 @@ public class Main {
     public static void insertCustomerRate(String customerName, int ratingScore, String condition, String... joinTables) {
         //// 1. insert data to customerRate table
         // find customerID
-        int customerID = findID(customer, customerName);
+        int customerID = findID(true, customer, customerName);
         // find movieID
         String sql = findMovieIDByJoin(condition, joinTables);
-        System.out.println(sql);
+        printTranslatedSQL(sql);
         try {
             Statement selectStmt = connection.createStatement();
             ResultSet selectRs = selectStmt.executeQuery(sql);
@@ -539,14 +538,15 @@ public class Main {
         // calc average of rate for each movie
         try {
             Statement rateStmt = connection.createStatement();
-            sql = "SELECT movieID, newRate " +
-                    "FROM (" +
-                    "SELECT round(avg(rate), 2) AS newRate , movieID " +
-                    "FROM customerRate " +
-                    "GROUP BY movieID " +
-                    ") avg_rate " +
-                    "NATURAL JOIN movie " +
+            sql = "\nSELECT movieID, newRate \n" +
+                    "FROM (\n" +
+                    "\tSELECT round(avg(rate), 2) AS newRate , movieID \n" +
+                    "\tFROM customerRate \n" +
+                    "\tGROUP BY movieID \n" +
+                    ") avg_rate \n" +
+                    "NATURAL JOIN movie \n" +
                     "WHERE avgrate is null OR avgrate != newRate;";
+            printTranslatedSQL(sql);
             ResultSet rateRs = rateStmt.executeQuery(sql);
 
             while (rateRs.next()) {
@@ -575,7 +575,7 @@ public class Main {
     }
 
     // find ID in actor, director, movie table
-    public static int findID(String tableName, String conditionValue){
+    public static int findID(boolean isPrinted, String tableName, String conditionValue){
         String ID = tableName + "ID";
         String conditionColumn = tableName + "Name";
 
@@ -583,6 +583,7 @@ public class Main {
             String sql = "SELECT " + ID +
                     " FROM " + tableName +
                     " WHERE " + conditionColumn + " = '" + conditionValue + "'";
+            if(isPrinted) printTranslatedSQL(sql);
             rs = stmt.executeQuery(sql);
             if(rs.next()) return rs.getInt(ID);
         } catch (SQLException e) {
@@ -610,7 +611,7 @@ public class Main {
     // print table affected to query
     public static void printTable(String... tables){
         for (String table : tables) {
-            System.out.printf("-----< %s >-----\n", table);
+            System.out.printf(yellow("----------< %s >----------\n"), table);
 
             try {
                 String sql = "SELECT * FROM " + table;
@@ -620,7 +621,7 @@ public class Main {
 
                 // print culumn
                 for (int i = 1; i <= columnCnt; i++) {
-                    System.out.printf("|%-25s", rsmd.getColumnName(i));
+                    System.out.printf(yellow("|%-25s"), rsmd.getColumnName(i));
                 }
                 System.out.print("\n");
 
@@ -641,17 +642,17 @@ public class Main {
     // Query 4, 5, 6
     // select query
     public static void printSelectResult(String translatedSQL){
-        System.out.println("Translated SQL : \n" + translatedSQL);
+        printTranslatedSQL(translatedSQL);
         try{
             ResultSet rs = stmt.executeQuery(translatedSQL);
             ResultSetMetaData rsmd = rs.getMetaData();
             String tableName = rsmd.getTableName(1);
-            System.out.printf("-----< %s >-----\n", tableName);
+            System.out.printf(yellow("----------< %s >----------\n"), tableName);
 
             int columnCnt = rsmd.getColumnCount();
             // print culumn
             for(int i=1;i<=columnCnt;i++){
-                System.out.printf("|%-25s", rsmd.getColumnName(i));
+                System.out.printf(yellow("|%-25s"), rsmd.getColumnName(i));
             }
             System.out.print("\n");
 
@@ -683,12 +684,23 @@ public class Main {
 
     // print statement
     public static void printStatement(String statement){
-        System.out.printf("\n[::Statement::] %s\n", statement);
+        System.out.printf(red("\n%s %s\n"),"[::Statement::]", statement);
     }
 
     // print translated SQL
     public static void printTranslatedSQL(String translatedSQL){
-        System.out.println("--Translated SQL--\n" + translatedSQL);
+        System.out.println(green("Translated SQL : ") + translatedSQL);
     }
 
+
+    /*** for colorful console***/
+    public static String red(String content){
+        return ANSI_RED + content + ANSI_RESET;
+    }
+    public static String green(String content){
+        return ANSI_GREEN + content + ANSI_RESET;
+    }
+    public static String yellow(String content){
+        return ANSI_YELLOW + content + ANSI_RESET;
+    }
 }
