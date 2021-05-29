@@ -1,5 +1,14 @@
 ﻿#include <iostream>
+#include <fstream>
+#define HEADER_SIZE 12
+
 using namespace std;
+
+struct BTREE_HEADER_FORMAT {
+	int blockSize;
+	int rootBID;
+	int depth;
+};
 
 class Entry {
 };
@@ -21,12 +30,30 @@ BTree::BTree(const char* fileName, int blockSize) {
 }
 
 
+bool createBTreeFile(char* binaryFileName, char* blockSize) {
+	ofstream binaryFileOut(binaryFileName, ios::binary);
+
+	if (binaryFileOut.fail()) {
+		return false;
+	}
+
+	BTREE_HEADER_FORMAT header = { atoi(blockSize), HEADER_SIZE, 0 };
+	binaryFileOut.write((char*)&header, sizeof(header));
+
+	binaryFileOut.close();
+	return true;
+}
+
+
 int main(int argc, char* argv[]) {
 	char command = argv[1][0];
 
 	switch (command) {
 	case 'c':
-		// index creation
+		if (!createBTreeFile(argv[2], argv[3])) {
+			cerr << "Error on createBTreeFile()\n";
+			return 0;
+		}
 		break;
 	case 'i':
 		// insertion
