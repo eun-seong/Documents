@@ -1,7 +1,6 @@
 ﻿#include <iostream>
 #include <fstream>
 #include <string>
-#include <stack>
 #include <deque>
 #include <vector>
 #define HEADER_SIZE 12
@@ -14,11 +13,6 @@ struct BTREE_HEADER_FORMAT {
 	int blockSize;
 	int rootBID;
 	int depth;
-};
-
-struct Ancestor {
-	int BID;
-	int index;
 };
 
 class Entry {
@@ -68,7 +62,7 @@ public:
 	bool insertFile(char* fileName);
 	void insert(int key, int rid);
 	void writeTreeToFile();
-	stack<Ancestor> searchRoom(int key);
+	deque<int> searchRoom(int key);
 	Node* split(Node* curNode, int key);
 	int* search(int key); // point search
 	int* search(int startRange, int endRange); // range search
@@ -115,10 +109,10 @@ void BTree::makeTree() {
 
 bool BTree::checkRangeForNode(bool isLeafNode, int curEntryNum, int curBID) {
 	if (isLeafNode) {
-		return curEntryNum + 1 <= this->B - 1 && (curEntryNum + 1 >= ceil((B - 1) / 2) || curBID == this->headerInfo.rootBID);
+		return curEntryNum <= this->B - 1 && (curEntryNum >= ceil((B - 1) / 2) || curBID == this->headerInfo.rootBID);
 	}
 	else {	// for non-leaf node
-		return curEntryNum + 1 <= this->B - 1 && curEntryNum + 1 >= ceil((B / 2) - 1);
+		return curEntryNum <= this->B - 1 && curEntryNum >= ceil(B / 2) - 1;
 	}
 }
 
@@ -155,39 +149,72 @@ bool BTree::insertFile(char* fileName) {
 	return true;
 }
 
-void BTree::insert(int key, int rid) {
-	stack<Ancestor> ancestor = searchRoom(key);
-	Node* curNode = this->nodes[ancestor.top().BID];
-	int curEntryNum = curNode->entries.size();
 
-	curNode->entries.insert(curNode->entries.begin() + ancestor.top().index, Entry(key, rid));
-	// entry 추가 후 정상 범위일 경우 insert 완료
+void BTree::insert(int key, int rid) {
+	deque<int> ancestor = searchRoom(key);
+	Node* curNode = this->nodes[ancestor[0]];
+	deque<Entry>::iterator it = curNode->entries.begin();
+	ancestor.pop_front();
+
+	// 1. leafNode에 Entry 추가
+	Entry newEntry(key, rid);
+	it = lower_bound(curNode->entries.begin(), curNode->entries.end(), newEntry, compare);
+	it = curNode->entries.insert(it, newEntry);
+
+	// 엔트리 개수가 정상 범위인지 체크
+	int curEntryNum = curNode->entries.size();
 	if (checkRangeForNode(true, curEntryNum, curNode->myBID)) return;
 
-	// 정상 범위가 아닐 경우 split 진행
-	ancestor.pop();
-	do {
-		Node* newNode = split(curNode, key);
-		if (curNode->nextBID != -1) newNode->nextBID = curNode->nextBID;
-		curNode->nextBID = newNode->myBID;
+
+	// 2. 정상 범위가 아닐 경우 leafNode split 진행
+	Node* newNode = split(curNode, key);
+	Entry newParentEntry(newNode->entries[0].key, newNode->myBID);
+	newNode->nextBID = curNode->nextBID;
+	curNode->nextBID = newNode->myBID;
+
+	// 현재 레벨이 0. 즉, 부모노드가 없음, rootNode에서 split된 경우
+	if (ancestor.empty()) {
+		this->headerInfo.rootBID = this->nodes.size();
+		this->headerInfo.depth++;
+		Node* newRootNode = new Node(this->headerInfo.rootBID);
+		newRootNode->nextBID = curNode->myBID;
+		newRootNode->entries.push_back(newParentEntry);
+		this->nodes.push_back(newRootNode);
+		return;
+	}
+
+	// 부모 노드가 있음
+	curNode = nodes[ancestor[0]];
+	it = lower_bound(curNode->entries.begin(), curNode->entries.end(), newParentEntry, compare);
+	it = curNode->entries.insert(it, newParentEntry);
+	curEntryNum = curNode->entries.size();
+
+
+	// 3. bottom-up
+	while (!checkRangeForNode(false, curEntryNum, curNode->myBID)) {
+		ancestor.pop_front();
+		newNode = split(curNode, key);
+		newNode->nextBID = newNode->entries[0].value;
+		Entry newParentEntry(newNode->entries[0].key, newNode->myBID);
+		newNode->entries.pop_front();
 
 		// 현재 레벨이 0. 즉, 부모노드가 없음, rootNode에서 split된 경우
 		if (ancestor.empty()) {
 			this->headerInfo.rootBID = this->nodes.size();
 			this->headerInfo.depth++;
 			Node* newRootNode = new Node(this->headerInfo.rootBID);
-			newRootNode->nextBID = newNode->myBID;
-			newRootNode->entries.push_back(Entry(newNode->entries[0].key, curNode->myBID));
+			newRootNode->nextBID = curNode->myBID;
+			newRootNode->entries.push_back(newParentEntry);
 			this->nodes.push_back(newRootNode);
 			break;
 		}
 
 		// 부모 노드가 있음
-		curNode = nodes[ancestor.top().BID];
-		curNode->entries.insert(curNode->entries.begin() + ancestor.top().index, Entry(newNode->entries[0].key, newNode->myBID));
+		curNode = nodes[ancestor[0]];
+		it = lower_bound(curNode->entries.begin(), curNode->entries.end(), newParentEntry, compare);
+		it = curNode->entries.insert(it, newParentEntry);
 		curEntryNum = curNode->entries.size();
-
-	} while (!checkRangeForNode(false, curEntryNum, curNode->myBID));
+	}
 }
 
 void BTree::writeTreeToFile() {
@@ -207,25 +234,23 @@ void BTree::writeTreeToFile() {
 	of.close();
 }
 
-stack<Ancestor> BTree::searchRoom(int key) {
-	stack<Ancestor> ancestor;
+deque<int> BTree::searchRoom(int key) {
+	deque<int> ancestor;
 	int curBID = this->headerInfo.rootBID;
-	int nextBID = -1;
 	int leafLevel = this->headerInfo.depth;
 	int curLevel = 0;
 
 	do {
 		Node* curNode = this->nodes[curBID];
+		int nextBID = curNode->nextBID;
 	
-		int index = 0;
-		for (index = 0; index < curNode->entries.size(); index++) {
-			if (curNode->entries[index].key > key) {
-				nextBID = curNode->entries[index].value;
-				break;
-			}
+		int i = 0;
+		for (i = 0; i < curNode->entries.size(); i++) {
+			if (key < curNode->entries[i].key) break;
 		}
+		if (i != 0) nextBID = curNode->entries[i - 1].value;
 
-		ancestor.push({ curBID,  index }); // 새 엔트리가 들어갈 자리 바로 다음 엔트리의 index
+ 		ancestor.push_front(curBID);
 		curBID = nextBID;
 
 	} while (curLevel++ < leafLevel);
@@ -238,9 +263,9 @@ Node* BTree::split(Node* curNode, int key) {
 	nodes.push_back(new Node(newBID));
 
 	Node* newNode = nodes[newBID];
-	for (int i = nodes[curNode->myBID]->entries.size() - 1; i >= ceil((double)B / 2); i--) {
-		newNode->entries.push_front(nodes[curNode->myBID]->entries[i]);
-		nodes[curNode->myBID]->entries.pop_back();
+	for (int i = curNode->entries.size() - 1; i >= (B / 2); i--) {
+		newNode->entries.push_front(curNode->entries[i]);
+		curNode->entries.pop_back();
 	}
 
 	return newNode;
@@ -292,15 +317,16 @@ void BTree::print(char* fileName) {
 	Node* rootNode = getNode(this->headerInfo.rootBID);
 	printToFile(rootNode, outputFile);
 
-	outputFile << "\n<1> \n";
-	Node* child = getNode(rootNode->entries[0].value);
-	do {
-		printToFile(child, outputFile);
-		child = getNode(child->nextBID);
-	} while (child->nextBID != -1);
-	outputFile << ",";
+	outputFile << "\n\n<1> \n";
+	Node* child = getNode(rootNode->nextBID);
 	printToFile(child, outputFile);
-	outputFile << ",\n";
+	outputFile << ",";
+	for (int i = 0; i < rootNode->entries.size(); i++) {
+		child = getNode(rootNode->entries[i].value);
+		printToFile(child, outputFile);
+		if (i != rootNode->entries.size() - 1) outputFile << ',';
+	}
+	outputFile << '\n';
 
 	outputFile.close();
 	binaryFile.close();
