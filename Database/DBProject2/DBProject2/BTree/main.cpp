@@ -66,8 +66,7 @@ public:
 	void writeNodeToBlock(Node* node);
 	bool checkRangeForNode(bool isLeafNode, int curEntryNum, int curBID);
 	int getBlockOffset(int BID);
-	int* search(int key); // point search
-	int* search(int startRange, int endRange); // range search
+	Node* search(int key); // point search
 	void print(char* fileName);
 
 private:
@@ -257,6 +256,24 @@ void printToFile(Node* node, ofstream& outputFile) {
 	}
 }
 
+Node* BTree::search(int key) {
+	int i, curBID = this->headerInfo.rootBID;
+	Node* curNode = getNode(curBID);
+
+	for (int j = 0; j < this->headerInfo.depth; j++) {
+		for (i = 0; i < curNode->entries.size(); i++) {
+			if (key < curNode->entries[i].key) break;
+		}
+
+		if (i != 0) curBID = curNode->entries[i - 1].value;
+		else curBID = curNode->nextBID;
+		curNode = getNode(curBID);	// nextLevel
+	}
+
+	return curNode;
+}
+
+
 void BTree::print(char* fileName) {
 	ifstream binaryFile(this->fileName, ios::binary | ios::in);
 	ofstream outputFile(fileName, ios::binary | ios::out);
@@ -312,14 +329,58 @@ int main(int argc, char* argv[]) {
 		is.close();
 		break;
 	}
-	case 's':
-		// point search
-		// btree.bin search.txt ouput.txt
+	case 's': {
+		BTree btree(argv[2]);
+		string key;
+		ifstream is(argv[3], ios::in); ofstream os(argv[4], ios::out);
+		if (is.fail() || os.fail()) return false;
+
+		while (is >> key) {
+			Node* node = btree.search(stoi(key));
+			for (int i = 0; i < node->entries.size(); i++) {
+				if (stoi(key) != node->entries[i].key) continue;
+
+				os << node->entries[i].key << "," << node->entries[i].value << '\n';
+				break;
+			}
+		}
+
+		is.close(); os.close();
 		break;
-	case 'r':
-		// range search
-		// btree.bin rangesearch.txt output.txt
+	}
+	case 'r': {
+		BTree btree(argv[2]);
+		string start, end;
+		char c; int i; bool isFinished;
+		ifstream is(argv[3], ios::in); ofstream os(argv[4], ios::out);
+		if (is.fail() || os.fail()) return false;
+
+		while (getline(is, start, ',')) {
+			is >> end;
+			is.seekg(2, ios::cur);	// 개행 문자 : \r\n 2byte
+
+			isFinished = false;
+			Node* node = btree.search(stoi(start));
+			while (!isFinished) {
+				for (int i = 0; i < node->entries.size(); i++) {
+					if (stoi(end) < node->entries[i].key) {
+						isFinished = true;
+						break;
+					}
+					if (stoi(start) <= node->entries[i].key) {
+						os << node->entries[i].key << "," << node->entries[i].value << '\t';
+					}
+				}
+
+				if (node->nextBID == -1) break;
+				node = btree.getNode(node->nextBID);
+			}
+			os << '\n';
+		}
+
+		is.close(); os.close();
 		break;
+	}
 	case 'p':
 		BTree btree(argv[2]);
 		btree.print(argv[3]);
