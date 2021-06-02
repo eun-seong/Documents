@@ -17,7 +17,7 @@ struct BTREE_HEADER_FORMAT {
 
 class Entry {
 public:
-	Entry(int key = INT_MAX, int value = INT_MAX) :key(key), value(value) {}
+	Entry(int key = 0, int value = 0) :key(key), value(value) {}
 	int key;
 	int value;		// leaf: value, non-leaf: nextLevelBID(left child)
 };
@@ -57,102 +57,39 @@ public:
 class BTree {
 public:
 	BTree(char* fileName);
-	void init();
-	bool createFile(int blockSize);
-	bool insertFile(char* fileName);
 	void insert(int key, int rid);
-	void writeTreeToFile();
 	deque<int> searchRoom(int key);
 	Node* split(Node* curNode, int key);
+	Node* getNode(int BID);
+	Node* streamToNode(int* stream, int BID);
+	void writeHeader();
+	void writeNodeToBlock(Node* node);
+	bool checkRangeForNode(bool isLeafNode, int curEntryNum, int curBID);
+	int getBlockOffset(int BID);
 	int* search(int key); // point search
 	int* search(int startRange, int endRange); // range search
 	void print(char* fileName);
-	Node* streamToNode(int* stream, int BID);
-	void makeEmptyTree(int rootBID);
-	void makeTree();
-	bool checkRangeForNode(bool isLeafNode, int curEntryNum, int curBID);
-
-	Node* getNode(int BID);
-	int getBlockOffset(int BID);
 
 private:
 	char* fileName;
 	int B;
-	vector<Node*> nodes;
-	fstream f;
+	int lastBID = 1;
 	BTREE_HEADER_FORMAT headerInfo;
 };
 
 BTree::BTree(char* fileName) : fileName(fileName) {
-	makeEmptyTree(1);	// 빈 트리 생성
-}
-
-void BTree::init() {
 	ifstream is(this->fileName, ios::binary | ios::in);
 	if (is.fail()) return;
 
-	is.read((char*)&(this->headerInfo), sizeof(headerInfo));
-	this->B = (this->headerInfo.blockSize - 4) / ENTRY_SIZE + 1;
+	is.read((char*)&(headerInfo), sizeof(headerInfo));
+	B = (this->headerInfo.blockSize - 4) / ENTRY_SIZE + 1;
 
 	is.close();
 }
-
-void BTree::makeEmptyTree(int rootBID) {
-	nodes.push_back(new Node(-1));
-	nodes.push_back(new Node(-1));
-	nodes[rootBID]->myBID = rootBID;
-}
-
-void BTree::makeTree() {
-	// TODO
-}
-
-bool BTree::checkRangeForNode(bool isLeafNode, int curEntryNum, int curBID) {
-	if (isLeafNode) {
-		return curEntryNum <= this->B - 1 && (curEntryNum >= ceil((B - 1) / 2) || curBID == this->headerInfo.rootBID);
-	}
-	else {	// for non-leaf node
-		return curEntryNum <= this->B - 1 && curEntryNum >= ceil(B / 2) - 1;
-	}
-}
-
-bool BTree::createFile(int blockSize) {
-	ofstream binaryFileOut(fileName, ios::binary | ios::out);
-
-	if (binaryFileOut.fail()) return false;
-
-	BTREE_HEADER_FORMAT header = { blockSize, 1, 0 };
-	binaryFileOut.write((char*)(&header), sizeof(header));
-
-	this->B = (blockSize - 4) / ENTRY_SIZE + 1;
-
-	binaryFileOut.close();
-	return true;
-}
-
-bool BTree::insertFile(char* fileName) {
-	ifstream is(fileName, ios::in);
-	if (is.fail()) return false;
-
-	string key, value;
-
-	while (getline(is, key, ',')) {
-		is >> value;
-		is.seekg(2, ios::cur);	// 개행 문자 : \r\n 2byte
-		this->insert(stoi(key), stoi(value));
-	}
-
-	is.close();
-	
-	writeTreeToFile();
-
-	return true;
-}
-
 
 void BTree::insert(int key, int rid) {
 	deque<int> ancestor = searchRoom(key);
-	Node* curNode = this->nodes[ancestor[0]];
+	Node* curNode = getNode(ancestor[0]);
 	deque<Entry>::iterator it = curNode->entries.begin();
 	ancestor.pop_front();
 
@@ -163,106 +100,91 @@ void BTree::insert(int key, int rid) {
 
 	// 엔트리 개수가 정상 범위인지 체크
 	int curEntryNum = curNode->entries.size();
-	if (checkRangeForNode(true, curEntryNum, curNode->myBID)) return;
-
-
-	// 2. 정상 범위가 아닐 경우 leafNode split 진행
-	Node* newNode = split(curNode, key);
-	Entry newParentEntry(newNode->entries[0].key, newNode->myBID);
-	newNode->nextBID = curNode->nextBID;
-	curNode->nextBID = newNode->myBID;
-
-	// 현재 레벨이 0. 즉, 부모노드가 없음, rootNode에서 split된 경우
-	if (ancestor.empty()) {
-		this->headerInfo.rootBID = this->nodes.size();
-		this->headerInfo.depth++;
-		Node* newRootNode = new Node(this->headerInfo.rootBID);
-		newRootNode->nextBID = curNode->myBID;
-		newRootNode->entries.push_back(newParentEntry);
-		this->nodes.push_back(newRootNode);
-		return;
+	if (checkRangeForNode(true, curEntryNum, curNode->myBID)) {
+		writeNodeToBlock(curNode);
+		//return;
 	}
-
-	// 부모 노드가 있음
-	curNode = nodes[ancestor[0]];
-	it = lower_bound(curNode->entries.begin(), curNode->entries.end(), newParentEntry, compare);
-	it = curNode->entries.insert(it, newParentEntry);
-	curEntryNum = curNode->entries.size();
-
-
-	// 3. bottom-up
-	while (!checkRangeForNode(false, curEntryNum, curNode->myBID)) {
-		ancestor.pop_front();
-		newNode = split(curNode, key);
-		newNode->nextBID = newNode->entries[0].value;
+	else {
+		// 2. 정상 범위가 아닐 경우 leafNode split 진행
+		Node* newNode = split(curNode, key);
 		Entry newParentEntry(newNode->entries[0].key, newNode->myBID);
-		newNode->entries.pop_front();
+		newNode->nextBID = curNode->nextBID; curNode->nextBID = newNode->myBID;
+		writeNodeToBlock(curNode); writeNodeToBlock(newNode);
 
 		// 현재 레벨이 0. 즉, 부모노드가 없음, rootNode에서 split된 경우
 		if (ancestor.empty()) {
-			this->headerInfo.rootBID = this->nodes.size();
+			this->headerInfo.rootBID = ++lastBID;
 			this->headerInfo.depth++;
 			Node* newRootNode = new Node(this->headerInfo.rootBID);
 			newRootNode->nextBID = curNode->myBID;
 			newRootNode->entries.push_back(newParentEntry);
-			this->nodes.push_back(newRootNode);
-			break;
+			writeNodeToBlock(newRootNode);
+			//return;
 		}
+		else {
+			// 부모 노드가 있음
+			curNode = getNode(ancestor[0]);
+			it = lower_bound(curNode->entries.begin(), curNode->entries.end(), newParentEntry, compare);
+			it = curNode->entries.insert(it, newParentEntry);
+			curEntryNum = curNode->entries.size();
+			writeNodeToBlock(curNode);
 
-		// 부모 노드가 있음
-		curNode = nodes[ancestor[0]];
-		it = lower_bound(curNode->entries.begin(), curNode->entries.end(), newParentEntry, compare);
-		it = curNode->entries.insert(it, newParentEntry);
-		curEntryNum = curNode->entries.size();
+
+			// 3. bottom-up
+			while (!checkRangeForNode(false, curEntryNum, curNode->myBID)) {
+				ancestor.pop_front();
+				newNode = split(curNode, key);
+				newNode->nextBID = newNode->entries[0].value;
+				Entry newParentEntry(newNode->entries[0].key, newNode->myBID);
+				newNode->entries.pop_front();
+				writeNodeToBlock(curNode); writeNodeToBlock(newNode);
+
+				// 현재 레벨이 0. 즉, 부모노드가 없음, rootNode에서 split된 경우
+				if (ancestor.empty()) {
+					this->headerInfo.rootBID = ++lastBID; this->headerInfo.depth++;
+					Node* newRootNode = new Node(headerInfo.rootBID);
+					newRootNode->nextBID = curNode->myBID;
+					newRootNode->entries.push_back(newParentEntry);
+					writeNodeToBlock(newRootNode);
+					break;
+				}
+
+				// 부모 노드가 있음
+				curNode = getNode(ancestor[0]);
+				it = lower_bound(curNode->entries.begin(), curNode->entries.end(), newParentEntry, compare);
+				it = curNode->entries.insert(it, newParentEntry);
+				curEntryNum = curNode->entries.size();
+				writeNodeToBlock(curNode);
+			}
+		}
 	}
-}
-
-void BTree::writeTreeToFile() {
-	ofstream of(this->fileName, ios::binary | ios::trunc);
-	if (of.fail()) {
-		cerr << "Error on writeTreeToFile()\n";
-		return;
-	}
-
-	of.write((char*)&(this->headerInfo), HEADER_SIZE);
-
-	for (int i = 1; i < this->nodes.size(); i++) {
-		int* stream = nodes[i]->nodeToStream(headerInfo.blockSize);
-		of.write((char*)stream, headerInfo.blockSize);
-	}
-
-	of.close();
+	writeHeader();
 }
 
 deque<int> BTree::searchRoom(int key) {
 	deque<int> ancestor;
-	int curBID = this->headerInfo.rootBID;
-	int leafLevel = this->headerInfo.depth;
-	int curLevel = 0;
+	int i, nextBID, curBID = this->headerInfo.rootBID;
 
-	do {
-		Node* curNode = this->nodes[curBID];
-		int nextBID = curNode->nextBID;
-	
-		int i = 0;
+	for (int j = 0; j <= this->headerInfo.depth; j++) {
+		Node* curNode = getNode(curBID);
+		nextBID = curNode->nextBID;
+
 		for (i = 0; i < curNode->entries.size(); i++) {
 			if (key < curNode->entries[i].key) break;
 		}
 		if (i != 0) nextBID = curNode->entries[i - 1].value;
 
- 		ancestor.push_front(curBID);
+		ancestor.push_front(curBID);
 		curBID = nextBID;
-
-	} while (curLevel++ < leafLevel);
+	}
 	
 	return ancestor;
 }
 
 Node* BTree::split(Node* curNode, int key) {
-	int newBID = this->nodes.size();
-	nodes.push_back(new Node(newBID));
+	int newBID = ++lastBID;
+	Node* newNode = new Node(newBID);
 
-	Node* newNode = nodes[newBID];
 	for (int i = curNode->entries.size() - 1; i >= (B / 2); i--) {
 		newNode->entries.push_front(curNode->entries[i]);
 		curNode->entries.pop_back();
@@ -270,7 +192,6 @@ Node* BTree::split(Node* curNode, int key) {
 
 	return newNode;
 }
-
 
 Node* BTree::getNode(int BID) {
 	ifstream is(this->fileName, ios::binary | ios::in);
@@ -287,14 +208,42 @@ Node* BTree::getNode(int BID) {
 Node* BTree::streamToNode(int* stream, int BID) {
 	Node* node = new Node(BID);
 
-	for (int i = 0; i < (this->B) - 1; i++) {
+	for (int i = 0; i < B - 1; i++) {
 		if (stream[i * 2] == 0) break;
-
 		node->entries.push_back(Entry(stream[i * 2], stream[i * 2 + 1]));
 	}
-	node->nextBID = stream[(this->B-1) * 2];
-
+	node->nextBID = stream[(B - 1) * 2];
+	
 	return node;
+}
+
+void BTree::writeHeader() {
+	ofstream of(fileName, ios::binary | ios::out | ios::in);
+
+	of.seekp(0, ios::beg);
+	of.write((char*)&headerInfo, sizeof(headerInfo));
+
+	of.close();
+}
+
+void BTree::writeNodeToBlock(Node* node) {
+	ofstream of(this->fileName, ios::binary | ios::out | ios::in);
+	if (of.fail()) return;
+
+	of.seekp(getBlockOffset(node->myBID), ios::beg);
+	int* stream = node->nodeToStream(headerInfo.blockSize);
+	of.write((char*)stream, headerInfo.blockSize);
+
+	of.close();
+}
+
+bool BTree::checkRangeForNode(bool isLeafNode, int curEntryNum, int curBID) {
+	if (isLeafNode) {
+		return curEntryNum <= this->B - 1 && (curEntryNum >= ceil((B - 1) / 2) || curBID == this->headerInfo.rootBID);
+	}
+	else {	// for non-leaf node
+		return curEntryNum <= this->B - 1 && curEntryNum >= ceil(B / 2) - 1;
+	}
 }
 
 int BTree::getBlockOffset(int BID) {
@@ -310,7 +259,7 @@ void printToFile(Node* node, ofstream& outputFile) {
 
 void BTree::print(char* fileName) {
 	ifstream binaryFile(this->fileName, ios::binary | ios::in);
-	ofstream outputFile(fileName, ios::out | ios::trunc);
+	ofstream outputFile(fileName, ios::binary | ios::out);
 
 	outputFile << "<0> \n";
 	binaryFile.seekg(HEADER_SIZE, ios::beg);
@@ -328,43 +277,41 @@ void BTree::print(char* fileName) {
 	}
 	outputFile << '\n';
 
-	outputFile.close();
-	binaryFile.close();
+	outputFile.close(); binaryFile.close();
 }
-
-
-
-void test() {
-	ofstream f("test.bin", ios::binary | ios::out);
-
-
-	BTREE_HEADER_FORMAT header = { 1, 2, 3 };
-
-	f.write((char*)&header, sizeof(header));
-
-	f.close();
-}
-
 
 int main(int argc, char* argv[]) {
 	char command = argv[1][0];
-	BTree btree(argv[2]);
-
-	//test();
 
 	switch (command) {
-	case 'c':
-		if (!btree.createFile(atoi(argv[3]))) {
-			cerr << "Error on createBTreeFile()\n";
-			return 0;
+	case 'c': {
+		int blockSize = atoi(argv[3]);
+		ofstream os(argv[2], ios::binary | ios::out);
+		if (os.fail()) return false;
+
+		BTREE_HEADER_FORMAT header = { blockSize, 1, 0 };
+		Node* node = new Node(1);
+		os.write((char*)(&header), sizeof(header));
+		os.write((char*)node->nodeToStream(blockSize), blockSize);
+
+		os.close();
+		break;
+	}
+	case 'i': {
+		BTree btree(argv[2]);
+		string key, value;
+		ifstream is(argv[3], ios::in);
+		if (is.fail()) return false;
+
+		while (getline(is, key, ',')) {
+			is >> value;
+			is.seekg(2, ios::cur);	// 개행 문자 : \r\n 2byte
+			btree.insert(stoi(key), stoi(value));
 		}
+
+		is.close();
 		break;
-	case 'i':
-		// insertion
-		// btree.bin insert.txt
-		btree.init();
-		btree.insertFile(argv[3]);
-		break;
+	}
 	case 's':
 		// point search
 		// btree.bin search.txt ouput.txt
@@ -374,8 +321,7 @@ int main(int argc, char* argv[]) {
 		// btree.bin rangesearch.txt output.txt
 		break;
 	case 'p':
-		// print level[0], level[1]
-		btree.init();
+		BTree btree(argv[2]);
 		btree.print(argv[3]);
 		break;
 	}
